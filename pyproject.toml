@@ -1,0 +1,13 @@
+[project]
+name = "berichter"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "aiosqlite>=0.22.1",
+    "fastapi[standard]>=0.143.0",
+    "httpx>=0.28.1",
+    "ollama>=0.6.3",
+    "sqlalchemy>=2.1.4",
+]

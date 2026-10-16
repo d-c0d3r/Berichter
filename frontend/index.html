@@ -1,0 +1,530 @@
+<!doctype html>
+<html lang="de">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Berichter · Ausbildungsnachweis</title>
+    <style>
+        :root {
+            color-scheme: dark;
+            --bg: #101218;
+            --card: #191d27;
+            --text: #edf0f8;
+            --muted: #9ba5ba;
+            --line: #303648;
+            --accent: #aa9dff;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            background: radial-gradient(ellipse at top left, #29213e, transparent 50%), var(--bg);
+            color: var(--text);
+            font: 15px/1.65 system-ui, sans-serif;
+            min-height: 100vh;
+        }
+
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            background: #101218e8;
+            backdrop-filter: blur(15px);
+            border-bottom: 1px solid var(--line);
+        }
+
+        nav {
+            max-width: 920px;
+            margin: auto;
+            padding: 18px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .brand { font-size: 23px; font-weight: 750; }
+        .brand span { color: var(--accent); }
+        main { max-width: 860px; margin: 40px auto; padding: 0 22px; }
+        h1 { font-size: 32px; letter-spacing: -1px; margin: 4px 0; }
+        h2 { font-size: 18px; margin: 0; }
+        p { margin: 7px 0; color: var(--muted); }
+        .intro { margin-bottom: 26px; }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 20px;
+            padding: 26px;
+            margin-bottom: 20px;
+        }
+
+        .row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .date-controls { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+        .date-controls label { margin: 0; }
+
+        input[type="date"] {
+            background: #302a49;
+            color: #d8d0ff;
+            border: 1px solid #49405f;
+            border-radius: 10px;
+            padding: 7px 10px;
+            font: inherit;
+            font-size: 13px;
+        }
+
+        label { display: block; margin: 22px 0 9px; font-weight: 600; }
+
+        textarea {
+            width: 100%;
+            min-height: 155px;
+            resize: vertical;
+            background: #121620;
+            color: var(--text);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 14px;
+            font: inherit;
+        }
+
+        textarea:focus { outline: 1px solid var(--accent); }
+
+        button {
+            font: inherit;
+            font-weight: 600;
+            color: var(--text);
+            background: #252a39;
+            border: 1px solid var(--line);
+            border-radius: 11px;
+            padding: 10px 15px;
+            cursor: pointer;
+        }
+
+        button:hover { background: #353b50; }
+        button:disabled, input:disabled { opacity: .45; cursor: not-allowed; }
+        button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+        .primary { background: #8675e9; border-color: #8675e9; color: white; }
+        .primary:hover { background: #9988ff; }
+        .compact { padding: 6px 10px; font-size: 12px; }
+        .actions { display: flex; flex-wrap: wrap; gap: 8px; }
+        .small, .date { font-size: 12px; color: var(--muted); }
+        .hint { display: flex; justify-content: space-between; margin: 6px 0 20px; gap: 10px; }
+        .result { border-top: 1px solid var(--line); margin-top: 23px; padding-top: 20px; }
+        .report { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.85; margin-top: 16px; }
+        .empty { color: var(--muted); font-style: italic; }
+        .error { color: #ff9aaa; white-space: pre-wrap; font-size: 13px; margin-top: 12px; }
+        .section { margin: 34px 0 18px; }
+        .history-notes { border-top: 1px solid var(--line); padding-top: 12px; margin-top: 15px; white-space: pre-wrap; color: var(--muted); font-size: 13px; }
+        #sentinel { text-align: center; padding: 15px; }
+        .footer { margin: 20px 0 35px; }
+
+        @media (max-width: 600px) {
+            main { padding: 0 15px; margin-top: 26px; }
+            .card { padding: 19px; }
+            h1 { font-size: 26px; }
+            .controls, .card-heading { flex-direction: column; align-items: flex-start; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="brand">berichter<span>.</span></div>
+            <span class="small">Ausbildungsnachweis</span>
+        </nav>
+    </header>
+
+    <main>
+        <div class="intro">
+            <p id="greeting"></p>
+            <h1>Dein Tag. Gut dokumentiert.</h1>
+            <p>Kurze Notizen rein, Ausbildungsbericht raus.</p>
+        </div>
+
+        <section class="card">
+            <div class="row card-heading">
+                <h2 id="day-title">Heute</h2>
+                <div class="date-controls">
+                    <label for="selected-date" class="small">Datum</label>
+                    <input type="date" id="selected-date" required>
+                    <button id="today" class="compact" type="button">Heute</button>
+                </div>
+            </div>
+
+            <label for="notes" id="notes-label">Was hast du heute gemacht?</label>
+            <textarea id="notes" placeholder="• Linux-Server eingerichtet&#10;• DNS-Fehler untersucht&#10;• Ergebnisse dokumentiert"></textarea>
+
+            <div class="hint small">
+                <span>Stichpunkte reichen. Automatisch lokal gespeichert.</span>
+                <span id="length">0 / 400</span>
+            </div>
+
+            <div class="row controls">
+                <div class="actions">
+                    <button id="generate" class="primary" type="button">✦ Bericht erstellen</button>
+                    <button id="retry" type="button">↻ Erneut versuchen</button>
+                    <button id="stop" type="button" hidden>Stoppen</button>
+                </div>
+                <span id="status" class="small" role="status">Bereit</span>
+            </div>
+
+            <div id="error" class="error" role="alert"></div>
+
+            <div class="result">
+                <div class="row">
+                    <h2>Dein Ausbildungsbericht</h2>
+                    <button id="copy" type="button">Kopieren</button>
+                </div>
+                <div id="report" class="report empty"></div>
+            </div>
+        </section>
+
+        <div class="row section">
+            <h2>Weitere Tage</h2>
+            <span id="count" class="small"></span>
+        </div>
+        <div id="history"></div>
+        <div id="sentinel" class="small"></div>
+        <p class="footer small">
+            Notizen und Verlauf werden in diesem Browser gespeichert.
+            Die Anzeige lädt keine Berichte aus der Datenbank.
+            Bei abgebrochener Generierung ist die Speicherung auf dem Server nicht bestätigt.
+        </p>
+    </main>
+
+    <script>
+        'use strict';
+
+        // Keep the existing backend endpoint and request format.
+        const REPORT_ENDPOINT = 'http://localhost:8000/report';
+        const STORAGE = 'berichter.entries.v1';
+        const MAX_NOTES = 400;
+        const $ = id => document.getElementById(id);
+
+        function readEntries() {
+            try {
+                const data = JSON.parse(localStorage.getItem(STORAGE));
+                return data && typeof data === 'object' && !Array.isArray(data) ? data : {};
+            } catch {
+                return {};
+            }
+        }
+
+        let entries = readEntries();
+        let day = '';
+        let shown = 10;
+        let busy = false;
+        let controller = null;
+        let lastToday = dayKey();
+
+        function dayKey(date = new Date()) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const dayOfMonth = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${dayOfMonth}`;
+        }
+
+        function validDay(key) {
+            if (!/^\d{4}-\d{2}-\d{2}$/.test(key)) return false;
+            const date = new Date(key + 'T12:00:00');
+            return !Number.isNaN(date.getTime()) && dayKey(date) === key;
+        }
+
+        function dateLabel(key) {
+            return new Date(key + 'T12:00:00').toLocaleDateString('de-DE', {
+                weekday: 'long',
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric'
+            });
+        }
+
+        function save() {
+            if (!day) return;
+
+            const notes = $('notes').value;
+            const report = $('report').classList.contains('empty')
+                ? ''
+                : $('report').textContent;
+
+            if (notes || report) {
+                entries[day] = { ...entries[day], notes, report };
+            } else {
+                delete entries[day];
+            }
+
+            try {
+                localStorage.setItem(STORAGE, JSON.stringify(entries));
+            } catch {
+                $('error').textContent = 'Lokales Speichern fehlgeschlagen. Bitte kopiere deinen Bericht als Sicherung.';
+            }
+        }
+
+        function showReport(text = '') {
+            $('report').textContent = text || 'Dein Bericht erscheint hier — Wort für Wort.';
+            $('report').classList.toggle('empty', !text);
+        }
+
+        function updateControls() {
+            const length = Array.from($('notes').value).length;
+            const invalid = !$('notes').value.trim() || length > MAX_NOTES;
+
+            $('length').textContent = `${length} / ${MAX_NOTES}`;
+            $('length').style.color = length > MAX_NOTES ? '#ff9aaa' : '';
+            $('generate').disabled = busy || invalid;
+            $('retry').disabled = busy || invalid;
+            $('notes').disabled = busy;
+            $('selected-date').disabled = busy;
+            $('today').disabled = busy || day === dayKey();
+            $('stop').hidden = !busy;
+            $('copy').disabled = $('report').classList.contains('empty');
+
+            document.querySelectorAll('[data-open-day]').forEach(button => {
+                button.disabled = busy;
+            });
+        }
+
+        function updateDateLabels() {
+            const isToday = day === dayKey();
+            $('selected-date').value = day;
+            $('greeting').textContent = dateLabel(day);
+            $('day-title').textContent = isToday ? 'Heute' : 'Ausgewählter Tag';
+            $('notes-label').textContent = isToday
+                ? 'Was hast du heute gemacht?'
+                : 'Was hast du an diesem Tag gemacht?';
+        }
+
+        function selectDay(nextDay) {
+            if (busy) return;
+            if (!validDay(nextDay)) {
+                $('selected-date').value = day;
+                return;
+            }
+            if (nextDay === day) return;
+
+            save();
+            day = nextDay;
+            const entry = entries[day] || {};
+            $('notes').value = entry.notes || '';
+            showReport(entry.report || '');
+            $('error').textContent = '';
+            $('status').textContent = 'Bereit';
+            shown = 10;
+            updateDateLabels();
+            renderHistory();
+            updateControls();
+        }
+
+        function historyKeys() {
+            return Object.keys(entries)
+                .filter(key => validDay(key) && key !== day && (entries[key]?.notes || entries[key]?.report))
+                .sort()
+                .reverse();
+        }
+
+        function renderHistory() {
+            const days = historyKeys();
+            $('count').textContent = `${days.length} ${days.length === 1 ? 'Eintrag' : 'Einträge'}`;
+            $('history').replaceChildren();
+
+            for (const key of days.slice(0, shown)) {
+                const entry = entries[key];
+                const card = document.createElement('article');
+                const heading = document.createElement('div');
+                const date = document.createElement('div');
+                const open = document.createElement('button');
+                const text = document.createElement('div');
+
+                card.className = 'card';
+                heading.className = 'row';
+                date.className = 'date';
+                date.textContent = dateLabel(key);
+                open.type = 'button';
+                open.className = 'compact';
+                open.textContent = 'Bearbeiten';
+                open.dataset.openDay = key;
+                open.disabled = busy;
+                open.onclick = () => {
+                    selectDay(key);
+                    $('selected-date').scrollIntoView({ behavior: 'smooth', block: 'center' });
+                };
+                text.className = 'report';
+                text.textContent = entry.report || 'Noch kein Bericht erstellt.';
+                heading.append(date, open);
+                card.append(heading, text);
+
+                if (entry.notes) {
+                    const notes = document.createElement('div');
+                    notes.className = 'history-notes';
+                    notes.textContent = 'Notizen\n' + entry.notes;
+                    card.append(notes);
+                }
+
+                $('history').append(card);
+            }
+
+            $('sentinel').textContent = !days.length
+                ? 'Weitere gespeicherte Tage erscheinen hier automatisch.'
+                : shown < days.length
+                    ? 'Weitere Tage laden …'
+                    : 'Alle Einträge geladen';
+        }
+
+        new IntersectionObserver(items => {
+            if (items.some(item => item.isIntersecting) && shown < historyKeys().length) {
+                shown += 10;
+                renderHistory();
+            }
+        }, { rootMargin: '200px' }).observe($('sentinel'));
+
+        async function httpError(response) {
+            let detail = '';
+            const type = response.headers.get('content-type') || '';
+
+            if (type.includes('json')) {
+                const data = await response.json();
+                detail = Array.isArray(data.detail)
+                    ? data.detail.map(error => `${error.loc?.join('.') || ''}: ${error.msg}`).join('\n')
+                    : String(data.detail || data.error || '');
+            } else {
+                const text = await response.text();
+                detail = /<(?:!doctype|html)/i.test(text)
+                    ? 'Der Server hat eine HTML-Fehlerseite geliefert. Prüfe Route und Serveradresse.'
+                    : text.slice(0, 500);
+            }
+
+            return new Error(`HTTP ${response.status}${detail ? ': ' + detail : ''}`);
+        }
+
+        async function streamText(response, onText) {
+            if (!response.body) throw new Error('Keine Streaming-Antwort verfügbar.');
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+
+            try {
+                while (true) {
+                    const { value, done } = await reader.read();
+                    if (done) {
+                        const tail = decoder.decode();
+                        if (tail) onText(tail);
+                        break;
+                    }
+                    const text = decoder.decode(value, { stream: true });
+                    if (text) onText(text);
+                }
+            } finally {
+                try { await reader.cancel(); } catch {}
+                reader.releaseLock();
+            }
+        }
+
+        async function generate() {
+            if (busy) return;
+            const notes = $('notes').value.trim();
+
+            if (!notes || Array.from(notes).length > MAX_NOTES) {
+                $('error').textContent = `Bitte gib 1 bis ${MAX_NOTES} Zeichen ein.`;
+                return;
+            }
+
+            save();
+            const requestDay = day;
+            const previous = entries[requestDay]?.report || '';
+            let output = '';
+            $('error').textContent = '';
+            busy = true;
+            controller = new AbortController();
+            updateControls();
+            $('status').textContent = 'Verbindung wird hergestellt …';
+
+            try {
+                const url = new URL(REPORT_ENDPOINT, location.origin);
+                url.searchParams.set('date_now', requestDay);
+
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(notes),
+                    signal: controller.signal
+                });
+
+                if (!response.ok) throw await httpError(response);
+                showReport();
+                $('status').textContent = 'Bericht wird geschrieben …';
+
+                await streamText(response, text => {
+                    output += text;
+                    showReport(output);
+                });
+
+                if (!output.trim()) throw new Error('Der Server hat keinen Bericht zurückgegeben.');
+                $('status').textContent = 'Abgeschlossen';
+            } catch (error) {
+                $('status').textContent = error.name === 'AbortError'
+                    ? 'Gestoppt · lokal behalten'
+                    : 'Fehler';
+
+                if (error.name !== 'AbortError') {
+                    $('error').textContent = error instanceof TypeError
+                        ? 'Backend nicht erreichbar. Prüfe Serveradresse, FastAPI-Konsole und gegebenenfalls die CORS-Konfiguration.'
+                        : error.message;
+                }
+                if (!output.trim()) showReport(previous);
+            } finally {
+                save();
+                busy = false;
+                controller = null;
+                updateControls();
+            }
+        }
+
+        $('notes').addEventListener('input', () => {
+            save();
+            updateControls();
+        });
+
+        $('selected-date').addEventListener('change', event => {
+            selectDay(event.target.value);
+        });
+
+        $('today').onclick = () => selectDay(dayKey());
+        $('generate').onclick = generate;
+        $('retry').onclick = generate;
+        $('stop').onclick = () => controller?.abort();
+
+        $('copy').onclick = async () => {
+            if ($('report').classList.contains('empty')) return;
+            try {
+                await navigator.clipboard.writeText($('report').textContent);
+                $('copy').textContent = 'Kopiert ✓';
+                setTimeout(() => { $('copy').textContent = 'Kopieren'; }, 1500);
+            } catch {
+                $('error').textContent = 'Bitte markiere den Bericht und kopiere ihn manuell.';
+            }
+        };
+
+        // Update “Heute” labels at midnight without changing the selected date.
+        function refreshCalendar() {
+            const today = dayKey();
+            if (today !== lastToday) {
+                lastToday = today;
+                updateDateLabels();
+                updateControls();
+            }
+        }
+
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) refreshCalendar();
+        });
+
+        selectDay(dayKey());
+        setInterval(refreshCalendar, 30000);
+    </script>
+</body>
+</html>
