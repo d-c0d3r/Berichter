@@ -5,6 +5,7 @@ class BerichterSettings(BaseSettings):
 
     OLLAMA_URL: str
     DATABASE_URL: str
+    BERICHTER_MODEL: str
 
     model_config = SettingsConfigDict(env_file='.env', env_file_encoding='utf-8')
 
