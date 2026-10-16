@@ -16,15 +16,13 @@
         }
 
         * { box-sizing: border-box; }
-
         body {
             margin: 0;
+            min-height: 100vh;
             background: radial-gradient(ellipse at top left, #29213e, transparent 50%), var(--bg);
             color: var(--text);
             font: 15px/1.65 system-ui, sans-serif;
-            min-height: 100vh;
         }
-
         header {
             position: sticky;
             top: 0;
@@ -33,7 +31,6 @@
             backdrop-filter: blur(15px);
             border-bottom: 1px solid var(--line);
         }
-
         nav {
             max-width: 920px;
             margin: auto;
@@ -42,7 +39,6 @@
             justify-content: space-between;
             align-items: center;
         }
-
         .brand { font-size: 23px; font-weight: 750; }
         .brand span { color: var(--accent); }
         main { max-width: 860px; margin: 40px auto; padding: 0 22px; }
@@ -50,7 +46,6 @@
         h2 { font-size: 18px; margin: 0; }
         p { margin: 7px 0; color: var(--muted); }
         .intro { margin-bottom: 26px; }
-
         .card {
             background: var(--card);
             border: 1px solid var(--line);
@@ -58,17 +53,9 @@
             padding: 26px;
             margin-bottom: 20px;
         }
-
-        .row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-        }
-
-        .date-controls { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+        .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+        .date-controls, .actions { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
         .date-controls label { margin: 0; }
-
         input[type="date"] {
             background: #302a49;
             color: #d8d0ff;
@@ -78,9 +65,7 @@
             font: inherit;
             font-size: 13px;
         }
-
         label { display: block; margin: 22px 0 9px; font-weight: 600; }
-
         textarea {
             width: 100%;
             min-height: 155px;
@@ -92,9 +77,7 @@
             padding: 14px;
             font: inherit;
         }
-
         textarea:focus { outline: 1px solid var(--accent); }
-
         button {
             font: inherit;
             font-weight: 600;
@@ -105,14 +88,12 @@
             padding: 10px 15px;
             cursor: pointer;
         }
-
         button:hover { background: #353b50; }
         button:disabled, input:disabled { opacity: .45; cursor: not-allowed; }
         button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
         .primary { background: #8675e9; border-color: #8675e9; color: white; }
         .primary:hover { background: #9988ff; }
         .compact { padding: 6px 10px; font-size: 12px; }
-        .actions { display: flex; flex-wrap: wrap; gap: 8px; }
         .small, .date { font-size: 12px; color: var(--muted); }
         .hint { display: flex; justify-content: space-between; margin: 6px 0 20px; gap: 10px; }
         .result { border-top: 1px solid var(--line); margin-top: 23px; padding-top: 20px; }
@@ -120,15 +101,13 @@
         .empty { color: var(--muted); font-style: italic; }
         .error { color: #ff9aaa; white-space: pre-wrap; font-size: 13px; margin-top: 12px; }
         .section { margin: 34px 0 18px; }
-        .history-notes { border-top: 1px solid var(--line); padding-top: 12px; margin-top: 15px; white-space: pre-wrap; color: var(--muted); font-size: 13px; }
         #sentinel { text-align: center; padding: 15px; }
         .footer { margin: 20px 0 35px; }
-
         @media (max-width: 600px) {
             main { padding: 0 15px; margin-top: 26px; }
             .card { padding: 19px; }
             h1 { font-size: 26px; }
-            .controls, .card-heading { flex-direction: column; align-items: flex-start; }
+            .controls, .card-heading, .section { flex-direction: column; align-items: flex-start; }
         }
     </style>
 </head>
@@ -139,14 +118,12 @@
             <span class="small">Ausbildungsnachweis</span>
         </nav>
     </header>
-
     <main>
         <div class="intro">
             <p id="greeting"></p>
             <h1>Dein Tag. Gut dokumentiert.</h1>
             <p>Kurze Notizen rein, Ausbildungsbericht raus.</p>
         </div>
-
         <section class="card">
             <div class="row card-heading">
                 <h2 id="day-title">Heute</h2>
@@ -156,15 +133,12 @@
                     <button id="today" class="compact" type="button">Heute</button>
                 </div>
             </div>
-
             <label for="notes" id="notes-label">Was hast du heute gemacht?</label>
             <textarea id="notes" placeholder="• Linux-Server eingerichtet&#10;• DNS-Fehler untersucht&#10;• Ergebnisse dokumentiert"></textarea>
-
             <div class="hint small">
-                <span>Stichpunkte reichen. Automatisch lokal gespeichert.</span>
+                <span>Notizen bleiben nur in diesem Tab. Berichte werden in der Datenbank gespeichert.</span>
                 <span id="length">0 / 400</span>
             </div>
-
             <div class="row controls">
                 <div class="actions">
                     <button id="generate" class="primary" type="button">✦ Bericht erstellen</button>
@@ -173,9 +147,7 @@
                 </div>
                 <span id="status" class="small" role="status">Bereit</span>
             </div>
-
             <div id="error" class="error" role="alert"></div>
-
             <div class="result">
                 <div class="row">
                     <h2>Dein Ausbildungsbericht</h2>
@@ -184,229 +156,255 @@
                 <div id="report" class="report empty"></div>
             </div>
         </section>
-
         <div class="row section">
             <h2>Weitere Tage</h2>
-            <span id="count" class="small"></span>
+            <div class="actions">
+                <span id="count" class="small"></span>
+                <button id="refresh-history" type="button" class="compact">Aktualisieren</button>
+            </div>
         </div>
         <div id="history"></div>
+        <div id="history-error" class="error" role="alert"></div>
         <div id="sentinel" class="small"></div>
+        <button id="load-more" type="button">Weitere Berichte laden</button>
         <p class="footer small">
-            Notizen und Verlauf werden in diesem Browser gespeichert.
-            Die Anzeige lädt keine Berichte aus der Datenbank.
-            Bei abgebrochener Generierung ist die Speicherung auf dem Server nicht bestätigt.
+            Berichte werden aus der Backend-Datenbank geladen. Der Browser speichert keine neue Berichtshistorie.
+            Ursprüngliche Notizen werden vom aktuellen Backend nicht gespeichert und gehen beim Neuladen verloren.
+            Vorhandene alte localStorage-Daten werden weder gelesen noch gelöscht.
         </p>
     </main>
-
     <script>
         'use strict';
 
-        // Keep the existing backend endpoint and request format.
-        const REPORT_ENDPOINT = 'http://localhost:8000/report';
-        const STORAGE = 'berichter.entries.v1';
+        // Same-origin backend (FastAPI or an Nginx reverse proxy).
+        // For a separate local backend use 'http://localhost:8000'.
+        const API_BASE = 'http://localhost:8000';
         const MAX_NOTES = 400;
+        const PAGE_SIZE = 10;
         const $ = id => document.getElementById(id);
+        const drafts = new Map(); // Unsaved notes: current tab only.
 
-        function readEntries() {
-            try {
-                const data = JSON.parse(localStorage.getItem(STORAGE));
-                return data && typeof data === 'object' && !Array.isArray(data) ? data : {};
-            } catch {
-                return {};
-            }
-        }
-
-        let entries = readEntries();
         let day = '';
-        let shown = 10;
         let busy = false;
+        let loadingDay = false;
         let controller = null;
+        let dayController = null;
+        let dayVersion = 0;
+        let historyVersion = 0;
+        let historyLoading = false;
+        let historyOffset = 0;
+        let historyDone = false;
+        let history = [];
         let lastToday = dayKey();
 
-        function dayKey(date = new Date()) {
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const dayOfMonth = String(date.getDate()).padStart(2, '0');
-            return `${year}-${month}-${dayOfMonth}`;
+        function dayKey(value = new Date()) {
+            return `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, '0')}-${String(value.getDate()).padStart(2, '0')}`;
         }
 
-        function validDay(key) {
-            if (!/^\d{4}-\d{2}-\d{2}$/.test(key)) return false;
-            const date = new Date(key + 'T12:00:00');
-            return !Number.isNaN(date.getTime()) && dayKey(date) === key;
+        function validDay(value) {
+            if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+            const parsed = new Date(value + 'T12:00:00');
+            return !Number.isNaN(parsed.getTime()) && dayKey(parsed) === value;
         }
 
-        function dateLabel(key) {
-            return new Date(key + 'T12:00:00').toLocaleDateString('de-DE', {
-                weekday: 'long',
-                day: 'numeric',
-                month: 'long',
-                year: 'numeric'
+        function dateLabel(value) {
+            return new Date(value + 'T12:00:00').toLocaleDateString('de-DE', {
+                weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
             });
         }
 
-        function save() {
-            if (!day) return;
-
-            const notes = $('notes').value;
-            const report = $('report').classList.contains('empty')
-                ? ''
-                : $('report').textContent;
-
-            if (notes || report) {
-                entries[day] = { ...entries[day], notes, report };
-            } else {
-                delete entries[day];
-            }
-
-            try {
-                localStorage.setItem(STORAGE, JSON.stringify(entries));
-            } catch {
-                $('error').textContent = 'Lokales Speichern fehlgeschlagen. Bitte kopiere deinen Bericht als Sicherung.';
-            }
+        function api(path) {
+            return `${API_BASE.replace(/\/$/, '')}${path}`;
         }
 
-        function showReport(text = '') {
-            $('report').textContent = text || 'Dein Bericht erscheint hier — Wort für Wort.';
+        async function httpError(response) {
+            let detail = '';
+            const body = await response.text();
+            try {
+                const data = JSON.parse(body);
+                detail = typeof data.detail === 'string' ? data.detail : JSON.stringify(data.detail || data);
+            } catch {
+                detail = /<(?:!doctype|html)/i.test(body)
+                    ? 'HTML statt API-Antwort erhalten. Prüfe API_BASE und Proxy-Konfiguration.'
+                    : body.slice(0, 500);
+            }
+            return new Error(`HTTP ${response.status}${detail ? ': ' + detail : ''}`);
+        }
+
+        function errorText(error) {
+            return error instanceof TypeError
+                ? 'Backend nicht erreichbar. Prüfe API_BASE, Server und gegebenenfalls CORS.'
+                : error.message;
+        }
+
+        function validateReport(value) {
+            if (!value || !validDay(value.report_date) || typeof value.content !== 'string' || !Number.isInteger(value.id)) {
+                throw new Error('Unerwartetes Antwortformat. Erwartet: id, report_date und content.');
+            }
+            return value;
+        }
+
+        async function fetchReport(key, signal) {
+            const response = await fetch(api(`/report/${encodeURIComponent(key)}`), {
+                signal, cache: 'no-store'
+            });
+            if (response.status === 404) return null;
+            if (!response.ok) throw await httpError(response);
+            const report = validateReport(await response.json());
+            if (report.report_date !== key) throw new Error('Die Antwort enthält ein anderes Datum.');
+            return report;
+        }
+
+        function showReport(text = '', placeholder = 'Für diesen Tag ist noch kein Bericht gespeichert.') {
+            $('report').textContent = text || placeholder;
             $('report').classList.toggle('empty', !text);
+            $('copy').disabled = !text;
         }
 
         function updateControls() {
             const length = Array.from($('notes').value).length;
-            const invalid = !$('notes').value.trim() || length > MAX_NOTES;
-
             $('length').textContent = `${length} / ${MAX_NOTES}`;
             $('length').style.color = length > MAX_NOTES ? '#ff9aaa' : '';
-            $('generate').disabled = busy || invalid;
-            $('retry').disabled = busy || invalid;
+            const invalid = !$('notes').value.trim() || length > MAX_NOTES;
+            $('generate').disabled = busy || loadingDay || invalid;
+            $('retry').disabled = busy || loadingDay || invalid;
             $('notes').disabled = busy;
             $('selected-date').disabled = busy;
             $('today').disabled = busy || day === dayKey();
             $('stop').hidden = !busy;
-            $('copy').disabled = $('report').classList.contains('empty');
-
-            document.querySelectorAll('[data-open-day]').forEach(button => {
-                button.disabled = busy;
-            });
+            document.querySelectorAll('[data-open-day]').forEach(button => { button.disabled = busy; });
         }
 
         function updateDateLabels() {
-            const isToday = day === dayKey();
+            const today = day === dayKey();
             $('selected-date').value = day;
             $('greeting').textContent = dateLabel(day);
-            $('day-title').textContent = isToday ? 'Heute' : 'Ausgewählter Tag';
-            $('notes-label').textContent = isToday
+            $('day-title').textContent = today ? 'Heute' : 'Ausgewählter Tag';
+            $('notes-label').textContent = today
                 ? 'Was hast du heute gemacht?'
                 : 'Was hast du an diesem Tag gemacht?';
         }
 
-        function selectDay(nextDay) {
+        async function selectDay(next) {
             if (busy) return;
-            if (!validDay(nextDay)) {
+            if (!validDay(next)) {
                 $('selected-date').value = day;
                 return;
             }
-            if (nextDay === day) return;
-
-            save();
-            day = nextDay;
-            const entry = entries[day] || {};
-            $('notes').value = entry.notes || '';
-            showReport(entry.report || '');
+            if (day) drafts.set(day, $('notes').value);
+            day = next;
+            const version = ++dayVersion;
+            dayController?.abort();
+            dayController = new AbortController();
+            loadingDay = true;
+            $('notes').value = drafts.get(day) || '';
             $('error').textContent = '';
-            $('status').textContent = 'Bereit';
-            shown = 10;
+            $('status').textContent = 'Bericht wird geladen …';
+            showReport('', 'Bericht wird aus der Datenbank geladen …');
             updateDateLabels();
             renderHistory();
             updateControls();
-        }
 
-        function historyKeys() {
-            return Object.keys(entries)
-                .filter(key => validDay(key) && key !== day && (entries[key]?.notes || entries[key]?.report))
-                .sort()
-                .reverse();
+            try {
+                const report = await fetchReport(next, dayController.signal);
+                if (version !== dayVersion) return;
+                showReport(report?.content || '');
+                $('status').textContent = report ? 'Aus Datenbank geladen' : 'Noch kein Bericht';
+            } catch (error) {
+                if (version !== dayVersion || error.name === 'AbortError') return;
+                showReport('', 'Der Bericht konnte nicht geladen werden.');
+                $('status').textContent = 'Ladefehler';
+                $('error').textContent = errorText(error);
+            } finally {
+                if (version === dayVersion) {
+                    loadingDay = false;
+                    updateControls();
+                }
+            }
         }
 
         function renderHistory() {
-            const days = historyKeys();
-            $('count').textContent = `${days.length} ${days.length === 1 ? 'Eintrag' : 'Einträge'}`;
             $('history').replaceChildren();
-
-            for (const key of days.slice(0, shown)) {
-                const entry = entries[key];
+            for (const entry of history.filter(item => item.report_date !== day)) {
                 const card = document.createElement('article');
                 const heading = document.createElement('div');
                 const date = document.createElement('div');
                 const open = document.createElement('button');
                 const text = document.createElement('div');
-
                 card.className = 'card';
                 heading.className = 'row';
                 date.className = 'date';
-                date.textContent = dateLabel(key);
+                date.textContent = dateLabel(entry.report_date);
                 open.type = 'button';
                 open.className = 'compact';
-                open.textContent = 'Bearbeiten';
-                open.dataset.openDay = key;
+                open.textContent = 'Öffnen';
+                open.dataset.openDay = entry.report_date;
                 open.disabled = busy;
                 open.onclick = () => {
-                    selectDay(key);
+                    selectDay(entry.report_date);
                     $('selected-date').scrollIntoView({ behavior: 'smooth', block: 'center' });
                 };
                 text.className = 'report';
-                text.textContent = entry.report || 'Noch kein Bericht erstellt.';
+                text.textContent = entry.content;
                 heading.append(date, open);
                 card.append(heading, text);
-
-                if (entry.notes) {
-                    const notes = document.createElement('div');
-                    notes.className = 'history-notes';
-                    notes.textContent = 'Notizen\n' + entry.notes;
-                    card.append(notes);
-                }
-
                 $('history').append(card);
             }
-
-            $('sentinel').textContent = !days.length
-                ? 'Weitere gespeicherte Tage erscheinen hier automatisch.'
-                : shown < days.length
-                    ? 'Weitere Tage laden …'
-                    : 'Alle Einträge geladen';
+            $('count').textContent = `${history.length} geladen${historyDone ? '' : ' · weitere möglich'}`;
         }
 
-        new IntersectionObserver(items => {
-            if (items.some(item => item.isIntersecting) && shown < historyKeys().length) {
-                shown += 10;
+        async function loadHistory(reset = false) {
+            if (!reset && (historyLoading || historyDone)) return;
+            if (reset) {
+                historyVersion++;
+                historyOffset = 0;
+                historyDone = false;
+                history = [];
                 renderHistory();
             }
-        }, { rootMargin: '200px' }).observe($('sentinel'));
+            const version = historyVersion;
+            historyLoading = true;
+            $('history-error').textContent = '';
+            $('load-more').disabled = true;
+            $('load-more').hidden = false;
+            $('sentinel').textContent = 'Berichte werden geladen …';
 
-        async function httpError(response) {
-            let detail = '';
-            const type = response.headers.get('content-type') || '';
-
-            if (type.includes('json')) {
-                const data = await response.json();
-                detail = Array.isArray(data.detail)
-                    ? data.detail.map(error => `${error.loc?.join('.') || ''}: ${error.msg}`).join('\n')
-                    : String(data.detail || data.error || '');
-            } else {
-                const text = await response.text();
-                detail = /<(?:!doctype|html)/i.test(text)
-                    ? 'Der Server hat eine HTML-Fehlerseite geliefert. Prüfe Route und Serveradresse.'
-                    : text.slice(0, 500);
+            try {
+                const response = await fetch(api(`/report?limit=${PAGE_SIZE}&offset=${historyOffset}`), { cache: 'no-store' });
+                if (!response.ok) throw await httpError(response);
+                const page = await response.json();
+                if (version !== historyVersion) return;
+                if (!Array.isArray(page)) throw new Error('Die Berichtsliste ist kein JSON-Array.');
+                page.forEach(validateReport);
+                historyOffset += page.length;
+                for (const item of page) {
+                    const index = history.findIndex(existing => existing.report_date === item.report_date);
+                    if (index === -1) history.push(item);
+                    else history[index] = item;
+                }
+                history.sort((a, b) => b.report_date.localeCompare(a.report_date));
+                historyDone = page.length < PAGE_SIZE;
+                renderHistory();
+                $('sentinel').textContent = historyDone
+                    ? (history.length ? 'Alle Berichte geladen.' : 'Noch keine Berichte in der Datenbank.')
+                    : 'Weitere Berichte können geladen werden.';
+            } catch (error) {
+                if (version !== historyVersion) return;
+                $('history-error').textContent = errorText(error);
+                $('sentinel').textContent = 'Laden fehlgeschlagen. Erneut versuchen.';
+            } finally {
+                if (version === historyVersion) {
+                    historyLoading = false;
+                    $('load-more').disabled = false;
+                    $('load-more').hidden = historyDone;
+                }
             }
-
-            return new Error(`HTTP ${response.status}${detail ? ': ' + detail : ''}`);
         }
 
         async function streamText(response, onText) {
             if (!response.body) throw new Error('Keine Streaming-Antwort verfügbar.');
             const reader = response.body.getReader();
             const decoder = new TextDecoder();
-
             try {
                 while (true) {
                     const { value, done } = await reader.read();
@@ -415,8 +413,7 @@
                         if (tail) onText(tail);
                         break;
                     }
-                    const text = decoder.decode(value, { stream: true });
-                    if (text) onText(text);
+                    onText(decoder.decode(value, { stream: true }));
                 }
             } finally {
                 try { await reader.cancel(); } catch {}
@@ -425,79 +422,67 @@
         }
 
         async function generate() {
-            if (busy) return;
+            if (busy || loadingDay) return;
             const notes = $('notes').value.trim();
-
-            if (!notes || Array.from(notes).length > MAX_NOTES) {
-                $('error').textContent = `Bitte gib 1 bis ${MAX_NOTES} Zeichen ein.`;
-                return;
-            }
-
-            save();
+            if (!notes || Array.from(notes).length > MAX_NOTES) return;
+            const previous = $('report').classList.contains('empty') ? '' : $('report').textContent;
             const requestDay = day;
-            const previous = entries[requestDay]?.report || '';
             let output = '';
-            $('error').textContent = '';
             busy = true;
             controller = new AbortController();
-            updateControls();
+            $('error').textContent = '';
             $('status').textContent = 'Verbindung wird hergestellt …';
+            updateControls();
 
             try {
-                const url = new URL(REPORT_ENDPOINT, location.origin);
-                url.searchParams.set('date_now', requestDay);
-
-                const response = await fetch(url, {
+                const response = await fetch(api(`/report?date_now=${encodeURIComponent(requestDay)}`), {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(notes),
                     signal: controller.signal
                 });
-
                 if (!response.ok) throw await httpError(response);
-                showReport();
+                showReport('', 'Bericht wird geschrieben …');
                 $('status').textContent = 'Bericht wird geschrieben …';
-
                 await streamText(response, text => {
                     output += text;
                     showReport(output);
                 });
-
                 if (!output.trim()) throw new Error('Der Server hat keinen Bericht zurückgegeben.');
-                $('status').textContent = 'Abgeschlossen';
+                $('status').textContent = 'Speicherung wird geprüft …';
+                const saved = await fetchReport(requestDay, controller.signal);
+                if (!saved || saved.content !== output) {
+                    throw new Error('Speicherung nicht bestätigt. Bitte kopiere den angezeigten Text als Sicherung.');
+                }
+                showReport(saved.content);
+                $('status').textContent = 'In Datenbank gespeichert';
             } catch (error) {
                 $('status').textContent = error.name === 'AbortError'
-                    ? 'Gestoppt · lokal behalten'
-                    : 'Fehler';
-
-                if (error.name !== 'AbortError') {
-                    $('error').textContent = error instanceof TypeError
-                        ? 'Backend nicht erreichbar. Prüfe Serveradresse, FastAPI-Konsole und gegebenenfalls die CORS-Konfiguration.'
-                        : error.message;
-                }
+                    ? 'Gestoppt · Speicherung nicht bestätigt'
+                    : 'Fehler · Speicherung nicht bestätigt';
+                $('error').textContent = error.name === 'AbortError'
+                    ? 'Ein angezeigter Teilbericht ist nur in dieser Ansicht vorhanden. Bei Bedarf bitte kopieren.'
+                    : errorText(error);
                 if (!output.trim()) showReport(previous);
             } finally {
-                save();
                 busy = false;
                 controller = null;
                 updateControls();
+                loadHistory(true);
             }
         }
 
         $('notes').addEventListener('input', () => {
-            save();
+            drafts.set(day, $('notes').value);
             updateControls();
         });
-
-        $('selected-date').addEventListener('change', event => {
-            selectDay(event.target.value);
-        });
-
+        $('selected-date').addEventListener('change', event => selectDay(event.target.value));
         $('today').onclick = () => selectDay(dayKey());
         $('generate').onclick = generate;
         $('retry').onclick = generate;
         $('stop').onclick = () => controller?.abort();
-
+        $('load-more').onclick = () => loadHistory();
+        $('refresh-history').onclick = () => loadHistory(true);
         $('copy').onclick = async () => {
             if ($('report').classList.contains('empty')) return;
             try {
@@ -509,22 +494,31 @@
             }
         };
 
-        // Update “Heute” labels at midnight without changing the selected date.
-        function refreshCalendar() {
-            const today = dayKey();
-            if (today !== lastToday) {
-                lastToday = today;
+        // Infinite scrolling, with a manual fallback and no automatic retry loop.
+        const observer = new IntersectionObserver(items => {
+            if (items.some(item => item.isIntersecting) && !$('history-error').textContent) {
+                loadHistory();
+            }
+        }, { rootMargin: '200px' });
+
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden && lastToday !== dayKey()) {
+                lastToday = dayKey();
                 updateDateLabels();
                 updateControls();
             }
-        }
+        });
 
-        document.addEventListener('visibilitychange', () => {
-            if (!document.hidden) refreshCalendar();
+        // Warn before losing in-memory notes or an active generation.
+        window.addEventListener('beforeunload', event => {
+            if (busy || [...drafts.values()].some(value => value.trim())) {
+                event.preventDefault();
+                event.returnValue = '';
+            }
         });
 
         selectDay(dayKey());
-        setInterval(refreshCalendar, 30000);
+        loadHistory(true).then(() => observer.observe($('sentinel')));
     </script>
 </body>
 </html>
