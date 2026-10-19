@@ -19,4 +19,4 @@ class ReportFile(Base):
     week_start: Mapped[date] = mapped_column(Date, unique=True, nullable=False)
     filename: Mapped[str] = mapped_column(String, unique=True, nullable=False)
 
-    reports: Mapped[list[Report]] = relationship(back_populates="report_file")
+    reports: Mapped[list["Report"]] = relationship(back_populates="report_file")
