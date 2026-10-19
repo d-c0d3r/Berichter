@@ -1,7 +1,4 @@
-__all__ = (
-    "ReportResponse",
-    "ReportFileResponse"
-)
+__all__ = ("ReportResponse", "ReportFileResponse")
 
 
 from .report import ReportResponse

@@ -1,7 +1,4 @@
-__all__ = (
-    "Report",
-    "ReportFile"
-)
+__all__ = ("Report", "ReportFile")
 
 
 from .report import Report
