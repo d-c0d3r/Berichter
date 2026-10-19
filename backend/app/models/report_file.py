@@ -15,7 +15,9 @@ if TYPE_CHECKING:
 class ReportFile(Base):
     __tablename__ = "report_files"
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, unique=True, nullable=False)
+    id: Mapped[int] = mapped_column(
+        Integer, primary_key=True, unique=True, nullable=False
+    )
     week_start: Mapped[date] = mapped_column(Date, unique=True, nullable=False)
     filename: Mapped[str] = mapped_column(String, unique=True, nullable=False)
 

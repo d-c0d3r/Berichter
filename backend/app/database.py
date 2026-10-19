@@ -8,7 +8,6 @@ from fastapi import Depends
 from app.settings import settings
 
 
-
 NAMING_CONVENTION = {
     "ix": "ix_%(column_0_label)s",
     "uq": "uq_%(table_name)s_%(column_0_name)s",
@@ -35,5 +34,6 @@ async def get_async_db_session():
             yield session
         finally:
             await session.commit()
+
 
 GetAsyncDBSessionDependency = Annotated[AsyncSession, Depends(get_async_db_session)]
