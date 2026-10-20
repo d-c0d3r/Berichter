@@ -113,11 +113,7 @@ async def get_reports(
     offset: Annotated[int, Query(ge=0)] = 0,
 ):
 
-    stmt = (
-        select(Report).limit(limit).order_by(Report.report_date.desc()).offset(offset)
-    )
-    result = await db.execute(stmt)
-    reports = result.scalars().all()
+    report_file = await crud.get_report_file_by_date(db=db, target_date=target_date, include_reports=True)
 
     if not reports:
         raise HTTPException(
