@@ -1,5 +1,5 @@
-__all__ = ("ReportResponse", "ReportFileResponse")
+__all__ = ("ReportResponse", "ReportFileWithReportsResponse")
 
 
 from .report import ReportResponse
-from .report_file import ReportFileResponse
+from .report_file import ReportFileWithReportsResponse
