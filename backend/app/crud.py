@@ -88,3 +88,16 @@ async def update_report_by_date(db: AsyncSession, report_date: date, new_content
 
     # Return updated report object
     return updated_report
+
+
+async def get_report_by_date(db: AsyncSession, report_date: date):
+
+    # Query to search report by report's date
+    stmt = select(Report).filter(Report.report_date == report_date)
+
+    # Execute query and fetch the result
+    result = await db.execute(stmt)
+    target_report = result.scalar_one_or_none()
+
+    # Return found report object
+    return target_report
