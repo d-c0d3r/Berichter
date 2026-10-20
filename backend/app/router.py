@@ -35,7 +35,7 @@ api_router = APIRouter(prefix="/api/v1", tags=["Reports"])
 @api_router.post(
     "/report",
     response_class=StreamingResponse,
-    status_code=status.HTTP_206_PARTIAL_CONTENT,
+    status_code=status.HTTP_200_OK,
 )
 async def generate_report(
     db: GetAsyncDBSessionDependency,
