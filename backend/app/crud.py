@@ -31,19 +31,14 @@ async def create_new_report_file(db: AsyncSession, target_date: date):
 
 
 async def get_report_file_by_date(
-    db: AsyncSession,
-    target_date: date,
-    include_reports: bool = False
+    db: AsyncSession, target_date: date, include_reports: bool = False
 ):
 
     # Calculating monday's date
     week_start, _ = get_week_bounds(target_date)
 
     # Search for report file with the calculated date of week start
-    stmt = (
-        select(models.ReportFile)
-        .filter(models.ReportFile.week_start == week_start)
-    )
+    stmt = select(models.ReportFile).filter(models.ReportFile.week_start == week_start)
 
     if include_reports:
         stmt = stmt.options(selectinload(models.ReportFile.reports))
@@ -93,10 +88,7 @@ async def update_report_by_date(db: AsyncSession, report_date: date, new_content
 async def get_report_by_date(db: AsyncSession, report_date: date):
 
     # Query to search report by report's date
-    stmt = (
-        select(models.Report).
-        filter(models.Report.report_date == report_date)
-    )
+    stmt = select(models.Report).filter(models.Report.report_date == report_date)
 
     # Execute query and fetch the result
     result = await db.execute(stmt)
