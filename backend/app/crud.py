@@ -6,13 +6,14 @@ from sqlalchemy import select, update
 from sqlalchemy.orm import selectinload
 
 from app.settings import settings
+from app.helpers import get_week_bounds
 from app.models import *
 
 
 async def create_report_file(db: AsyncSession, week_start: date):
 
     # Calculate friday's date
-    week_end = week_start + timedelta(days=4)
+    week_start, week_end = get_week_bounds(target_date)
 
     # Create new report file object
     new_report_file = ReportFile(
@@ -35,7 +36,7 @@ async def create_report_file(db: AsyncSession, week_start: date):
 async def get_report_file_by_date(db: AsyncSession, target_date: date):
 
     # Calculating monday's date
-    week_start = target_date - timedelta(days=target_date.weekday())
+    week_start, _ = get_week_bounds(target_date)
 
     # Search for report file with the calculated date of week start
     stmt = (
