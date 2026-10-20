@@ -1,5 +1,6 @@
 import asyncio
 from typing import Annotated
+from contextlib import asynccontextmanager, suppress
 
 import ollama
 import uvicorn
@@ -8,13 +9,44 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy import select, update
 
-from schemas import ReportResponse
-from settings import settings, OLLAMA_CLIENT
-from models import Report
-from database import GetAsyncDBSessionDependency
+from app.router import api_router
+from app.background_tasks import create_report, update_report
+
+async def worker(queue):
+    while True:
+        job = await queue.get()
+        try:
+            match job.get("title"):
+                case "create_report":
+                    await asyncio.to_thread(
+                        create_report, job["week_start"], job["week_end"]
+                    )
+
+                case "update_report":
+                    await asyncio.to_thread(
+                        update_report, job["name"], job["date"], job["content"]
+                    )
+
+        except Exception:
+            pass
+        finally:
+            queue.task_done()
 
 
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(app):
+    app.state.task_queue = asyncio.Queue()
+    task = asyncio.create_task(worker(app.state.task_queue))
+
+    try:
+        yield
+    finally:
+        task.cancel()
+        with suppress(asyncio.CancelledError):
+            await task
+
+
+app = FastAPI(lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
