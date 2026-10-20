@@ -10,7 +10,7 @@ from app.helpers import get_week_bounds
 from app.models import *
 
 
-async def create_report_file(db: AsyncSession, week_start: date):
+async def create_new_report_file(db: AsyncSession, target_date: date):
 
     # Calculate friday's date
     week_start, week_end = get_week_bounds(target_date)
@@ -73,7 +73,7 @@ async def create_new_report(db: AsyncSession, report_file: ReportFile, report_da
 
 async def update_report_by_date(db: AsyncSession, report_date: date, new_content: str):
 
-    # Generate query to search and update report by report's date
+    # Query to search and update report by report's date
     stmt = (
         update(Report)
         .where(Report.report_date == report_date)
