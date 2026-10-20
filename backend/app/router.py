@@ -22,10 +22,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy import select, update
 
-from app import crud
-from app.schemas import ReportResponse
+from app import crud, schemas
 from app.settings import settings, OLLAMA_CLIENT
-from app.models import Report
 from app.database import GetAsyncDBSessionDependency
 
 
@@ -70,7 +68,7 @@ async def generate_report(
 
         if not report:
             # Create report if it doesn't exist
-            report = crud.create_new_report(
+            report = await crud.create_new_report(
                 db=db, report_file=report_file, report_date=date_now, content=content
             )
 
@@ -83,24 +81,21 @@ async def generate_report(
     return StreamingResponse(
         generate_report(),
         status_code=status.HTTP_206_PARTIAL_CONTENT,
-        media_type="plain/text",
+        media_type="text/plain",
     )
 
 
-@api_router.get("/report/{report_date}", response_model=ReportResponse)
+@api_router.get("/report/{report_date}", response_model=schemas.ReportResponse)
 async def get_report_by_date(
     db: GetAsyncDBSessionDependency, report_date: Annotated[date, Path()]
 ):
 
-    report = await crud.get_report_by_date(
-        db=db,
-        report_date=report_date
-    )
+    report = await crud.get_report_by_date(db=db, report_date=report_date)
 
     if not report:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Kein Bericht für {report_date.strftime('%d %B')} vorhanden!",
+            detail=f"Keine Berichte für {report_date.strftime('%d %B')} vorhanden!",
         )
 
     return report
@@ -112,7 +107,9 @@ async def get_reports_for_week(
     target_date: Annotated[date, Query()] = date.today(),
 ):
 
-    report_file = await crud.get_report_file_by_date(db=db, target_date=target_date, include_reports=True)
+    report_file = await crud.get_report_file_by_date(
+        db=db, target_date=target_date, include_reports=True
+    )
 
     if not report_file:
         raise HTTPException(
