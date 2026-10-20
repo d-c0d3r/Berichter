@@ -19,9 +19,8 @@ async def create_new_report_file(db: AsyncSession, target_date: date):
     new_report_file = ReportFile(
         week_start=week_start,
         filename=settings.BERICHTSHEFT_BASE_FILENAME.format(
-            week_start=week_start,
-            week_end=week_end
-        )
+            week_start=week_start, week_end=week_end
+        ),
     )
 
     # Add new object to database and commit
@@ -53,13 +52,13 @@ async def get_report_file_by_date(db: AsyncSession, target_date: date):
     return target_report_file
 
 
-async def create_new_report(db: AsyncSession, report_file: ReportFile, report_date: date, content: str):
+async def create_new_report(
+    db: AsyncSession, report_file: ReportFile, report_date: date, content: str
+):
 
     # Create new report file object
     new_report = Report(
-        report_file_id=ReportFile.id,
-        report_date=report_date,
-        content=content
+        report_file_id=ReportFile.id, report_date=report_date, content=content
     )
 
     # Add new object to database and commit
