@@ -1,11 +1,9 @@
-from datetime import date
-from time import time
+import asyncio
 from typing import Annotated
 
 import ollama
 import uvicorn
-from fastapi import Depends, FastAPI, Body, HTTPException, Path, Query, status, Request
-from fastapi.responses import StreamingResponse
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy import select, update
