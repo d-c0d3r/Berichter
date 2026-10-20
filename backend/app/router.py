@@ -92,9 +92,10 @@ async def get_report_by_date(
     db: GetAsyncDBSessionDependency, report_date: Annotated[date, Path()]
 ):
 
-    stmt = select(Report).where(Report.report_date == report_date)
-    result = await db.execute(stmt)
-    report = result.scalar_one_or_none()
+    report = await crud.get_report_by_date(
+        db=db,
+        report_date=report_date
+    )
 
     if not report:
         raise HTTPException(
