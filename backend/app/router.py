@@ -7,7 +7,16 @@ import asyncio
 
 import ollama
 import uvicorn
-from fastapi import Depends, APIRouter, Body, HTTPException, Path, Query, status, Request
+from fastapi import (
+    Depends,
+    APIRouter,
+    Body,
+    HTTPException,
+    Path,
+    Query,
+    status,
+    Request,
+)
 from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
@@ -22,6 +31,7 @@ from app.database import GetAsyncDBSessionDependency
 
 api_router = APIRouter(prefix="/api/v1", tags=["Reports"])
 
+
 @api_router.post(
     "/report",
     response_class=StreamingResponse,
@@ -31,7 +41,7 @@ async def generate_report(
     db: GetAsyncDBSessionDependency,
     request: Request,
     notes: Annotated[str, Body(max_length=400)],
-    date_now: Annotated[date, Query()] = date.today()
+    date_now: Annotated[date, Query()] = date.today(),
 ):
 
     message = {"role": "user", "content": notes}
@@ -49,41 +59,25 @@ async def generate_report(
         content = "".join(chunks)
 
         # Request report file
-        report_file = await crud.get_report_file_by_date(
-            db=db,
-            target_date=date_now
-        )
+        report_file = await crud.get_report_file_by_date(db=db, target_date=date_now)
 
         # Create report file if it doesn't exist
         if not report_file:
-            report_file = await crud.create_new_report_file(
-                db=db,
-                target_date=date_now
-            )
+            report_file = await crud.create_new_report_file(db=db, target_date=date_now)
 
         # Request report
-        report = await crud.get_report_by_date(
-            db=db,
-            report_date=date_now
-        )
+        report = await crud.get_report_by_date(db=db, report_date=date_now)
 
         if not report:
-
             # Create report if it doesn't exist
             report = crud.create_new_report(
-                db=db,
-                report_file=report_file,
-                report_date=date_now,
-                content=content
+                db=db, report_file=report_file, report_date=date_now, content=content
             )
 
         else:
-
             # Update report
             report = await crud.update_report_by_date(
-                db=db,
-                report_date=date_now,
-                new_content=content
+                db=db, report_date=date_now, new_content=content
             )
 
     return StreamingResponse(
@@ -93,10 +87,7 @@ async def generate_report(
     )
 
 
-@api_router.get(
-    "/report/{report_date}",
-    response_model=ReportResponse
-)
+@api_router.get("/report/{report_date}", response_model=ReportResponse)
 async def get_report_by_date(
     db: GetAsyncDBSessionDependency, report_date: Annotated[date, Path()]
 ):
@@ -114,10 +105,7 @@ async def get_report_by_date(
     return report
 
 
-@api_router.get(
-    "/report",
-    response_model=list[ReportResponse]
-)
+@api_router.get("/report", response_model=list[ReportResponse])
 async def get_reports(
     db: GetAsyncDBSessionDependency,
     limit: Annotated[int, Query(le=100, gt=0)] = 10,

@@ -10,6 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.router import api_router
 from app.background_tasks import create_report, update_report
 
+
 async def worker(queue):
     while True:
         job = await queue.get()
