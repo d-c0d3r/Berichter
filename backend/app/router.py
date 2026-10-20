@@ -106,21 +106,17 @@ async def get_report_by_date(
     return report
 
 
-@api_router.get("/report", response_model=list[ReportResponse])
-async def get_reports(
+@api_router.get("/week", response_model=schemas.ReportFileWithReportsResponse)
+async def get_reports_for_week(
     db: GetAsyncDBSessionDependency,
-    limit: Annotated[int, Query(le=100, gt=0)] = 10,
-    offset: Annotated[int, Query(ge=0)] = 0,
+    target_date: Annotated[date, Query()] = date.today(),
 ):
 
     report_file = await crud.get_report_file_by_date(db=db, target_date=target_date, include_reports=True)
 
-    if not reports:
+    if not report_file:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail=f"Keine Berichte vorhanden!"
         )
 
-    for report in reports:
-        print(report.report_date, type(report.report_date))
-
-    return reports
+    return report_file
