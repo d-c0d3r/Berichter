@@ -6,8 +6,6 @@ import ollama
 import uvicorn
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy.orm import Session
-from sqlalchemy import select, update
 
 from app.router import api_router
 from app.background_tasks import create_report, update_report
