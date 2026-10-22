@@ -65,16 +65,14 @@ async def generate_report(
             report_number = await crud.get_new_report_file_number(db=db)
 
             report_file = await crud.create_new_report_file(
-                db=db,
-                target_date=date_now,
-                report_number=report_number
+                db=db, target_date=date_now, report_number=report_number
             )
 
             queue.put_nowait(
                 {
                     "title": "create_report_file",
                     "report_number": report_number,
-                    "target_date": date_now
+                    "target_date": date_now,
                 }
             )
 
@@ -98,7 +96,7 @@ async def generate_report(
                 "title": "update_report_file",
                 "target_report_filename": report_file.filename,
                 "target_date": date_now,
-                "content": content
+                "content": content,
             }
         )
 

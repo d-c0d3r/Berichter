@@ -20,7 +20,7 @@ async def worker(queue):
                     await asyncio.to_thread(
                         background_tasks.create_report_file,
                         job["report_number"],
-                        job["target_date"]
+                        job["target_date"],
                     )
 
                 case "update_report_file":
@@ -28,7 +28,7 @@ async def worker(queue):
                         background_tasks.update_report_file,
                         job["target_report_filename"],
                         job["target_date"],
-                        job["content"]
+                        job["content"],
                     )
 
         except Exception as e:

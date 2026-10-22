@@ -21,19 +21,13 @@ def create_report_file(report_number: int, target_date: date):
     target_report_file = settings.BERICHTSHEFT_BASE_FILENAME.format(
         report_number=report_number,
         week_start=week_start.strftime("%d.%m.%Y"),
-        week_end=week_end.strftime("%d.%m.%Y")
+        week_end=week_end.strftime("%d.%m.%Y"),
     )
 
     # Create new report file from template and return it's path
     filepath = helpers.new_report_file_from_template(
-        os.path.join(
-            settings.REPORTS_DIRECTORY,
-            settings.TEMPLATE_REPORT_FILENAME
-        ),
-        os.path.join(
-            settings.REPORTS_DIRECTORY,
-            target_report_file
-        )
+        os.path.join(settings.REPORTS_DIRECTORY, settings.TEMPLATE_REPORT_FILENAME),
+        os.path.join(settings.REPORTS_DIRECTORY, target_report_file),
     )
 
     # Open the report file

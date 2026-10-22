@@ -1,6 +1,7 @@
 from datetime import date, timedelta
 import shutil
 
+
 def get_week_bounds(target_date: date):
 
     week_start = target_date - timedelta(days=target_date.weekday())
