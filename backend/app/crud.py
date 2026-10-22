@@ -10,7 +10,7 @@ from app.helpers import get_week_bounds
 from app import models
 
 
-async def create_new_report_file(db: AsyncSession, target_date: date):
+async def create_new_report_file(db: AsyncSession, target_date: date, report_number: int):
 
     # Calculate friday's date
     week_start, week_end = get_week_bounds(target_date)
@@ -19,7 +19,9 @@ async def create_new_report_file(db: AsyncSession, target_date: date):
     new_report_file = models.ReportFile(
         week_start=week_start,
         filename=settings.BERICHTSHEFT_BASE_FILENAME.format(
-            week_start=week_start, week_end=week_end
+            report_number=report_number,
+            week_start=week_start.strftime("%d.%m.%Y"),
+            week_end=week_end.strftime("%d.%m.%Y")
         ),
     )
 
