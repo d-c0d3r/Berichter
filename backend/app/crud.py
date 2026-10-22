@@ -2,7 +2,7 @@ from datetime import date, timedelta
 from fileinput import filename
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, update
+from sqlalchemy import select, update, func
 from sqlalchemy.orm import selectinload
 
 from app.settings import settings
@@ -49,6 +49,20 @@ async def get_report_file_by_date(
 
     # Return found result or none
     return target_report_file
+
+
+async def get_new_report_file_number(db: AsyncSession):
+
+    stmt = select(func.count()).select_from(models.ReportFile)
+
+    count = await db.scalar(stmt)
+
+    if isinstance(count, int):
+        count += 1
+
+        return count
+
+    return 1
 
 
 async def create_new_report(
