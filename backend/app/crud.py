@@ -2,7 +2,7 @@ from datetime import date, timedelta
 from fileinput import filename
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, update, func
+from sqlalchemy import desc, select, update, func
 from sqlalchemy.orm import selectinload
 
 from app.settings import settings
@@ -34,8 +34,31 @@ async def create_new_report_file(
     return new_report_file
 
 
+async def get_report_files(
+    db: AsyncSession,
+    limit: int = 10,
+    offset: int = 0,
+    include_reports: bool = False
+):
+
+    # Search for report files with the specified limit and offset
+    stmt = select(models.ReportFile).order_by(desc(models.ReportFile.week_start)).limit(limit).offset(offset)
+
+    if include_reports:
+        stmt = stmt.options(selectinload(models.ReportFile.reports))
+
+    # Execute SQL query
+    result = await db.execute(stmt)
+    target_report_files = result.scalars().all()
+
+    # Return found result
+    return target_report_files
+
+
 async def get_report_file_by_date(
-    db: AsyncSession, target_date: date, include_reports: bool = False
+    db: AsyncSession,
+    target_date: date,
+    include_reports: bool = False,
 ):
 
     # Calculating monday's date
