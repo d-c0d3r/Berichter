@@ -5,8 +5,11 @@ import ollama
 class BerichterSettings(BaseSettings):
     OLLAMA_URL: str
     DATABASE_URL: str
-    BERICHTER_MODEL: str = "berichter-large-qwen3"
-    BERICHTSHEFT_BASE_FILENAME: str = "Berichtsheft ({week_start} - {week_end}).docx"
+    FULL_USER_NAME: str
+    BERICHTER_MODEL: str
+    REPORTS_DIRECTORY: str
+    TEMPLATE_REPORT_FILENAME: str
+    BERICHTSHEFT_BASE_FILENAME: str
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
