@@ -1,24 +1,108 @@
 <!doctype html>
 <html lang="de">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Berichter</title><link rel="stylesheet" href="styles.css"><script src="app.js" defer></script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Berichter</title>
+
+  <link rel="stylesheet" href="styles.css">
+  <script src="app.js" defer></script>
 </head>
-<body><main>
-<div class="brand" aria-label="Berichter">berichter<span>.</span></div>
-<p id="greeting" class="greeting"></p>
-<section class="card" aria-labelledby="day-title">
-<div class="row heading"><h1 id="day-title">Heute</h1><div class="actions"><label for="selected-date">Datum</label><input id="selected-date" type="date" required><button id="today" type="button">Heute</button></div></div>
-<label class="notes-label" for="notes" id="notes-label">Was hast du heute gemacht?</label>
-<textarea id="notes" placeholder="• Linux-Server eingerichtet&#10;• DNS-Fehler untersucht&#10;• Ergebnisse dokumentiert"></textarea>
-<div class="row hint"><span>Notizen bleiben nur in diesem Tab.</span><span id="length">0 / 400</span></div>
-<div class="row controls"><div class="actions"><button class="primary" id="generate">✦ Bericht erstellen</button><button id="retry">↻ Erneut versuchen</button><button id="stop" hidden>Stoppen</button></div><span id="status" role="status">Bereit</span></div>
-<p id="error" class="error" role="alert"></p>
-<div class="result"><div class="row"><h2>Dein Ausbildungsbericht</h2><button id="copy">Kopieren</button></div><div id="report" class="report empty"></div></div>
-</section>
-<section aria-labelledby="weeks-title"><div class="row section-heading"><h2 id="weeks-title">Deine Wochenberichte</h2><button id="refresh">Aktualisieren</button></div>
-<p class="muted">Eine Woche öffnen, um die gespeicherten Tagesberichte anzuzeigen.</p>
-<div class="row week-controls"><label for="week-date">Woche auswählen</label><input type="date" id="week-date"><button id="open-week">Woche laden</button></div>
-<p id="history-error" class="error" role="alert"></p><div id="weeks"></div><button id="older">Vorherige Woche laden</button>
-<p class="footer">Berichte werden aus der Datenbank geladen. Ursprüngliche Notizen werden nicht dauerhaft im Browser gespeichert.</p>
-</section></main></body></html>
+
+<body>
+<main>
+  <div class="brand" aria-label="Berichter">
+    berichter<span>.</span>
+  </div>
+
+  <p id="greeting" class="greeting"></p>
+
+  <section class="card" aria-labelledby="day-title">
+    <div class="row heading">
+      <h1 id="day-title">Heute</h1>
+
+      <div class="actions">
+        <label for="selected-date">Datum</label>
+        <input id="selected-date" type="date" required>
+        <button id="today" type="button">Heute</button>
+      </div>
+    </div>
+
+    <label class="notes-label" for="notes" id="notes-label">
+      Was hast du heute gemacht?
+    </label>
+
+    <textarea
+      id="notes"
+      placeholder="• Linux-Server eingerichtet&#10;• DNS-Fehler untersucht&#10;• Ergebnisse dokumentiert"
+    ></textarea>
+
+    <div class="row hint">
+      <span>Notizen bleiben nur in diesem Tab.</span>
+      <span id="length">0 / 400</span>
+    </div>
+
+    <div class="row controls">
+      <div class="actions">
+        <button class="primary" id="generate" type="button">
+          ✦ Bericht erstellen
+        </button>
+
+        <button id="retry" type="button">
+          ↻ Erneut versuchen
+        </button>
+
+        <button id="stop" type="button" hidden>
+          Stoppen
+        </button>
+      </div>
+
+      <span id="status" role="status">Bereit</span>
+    </div>
+
+    <p id="error" class="error" role="alert"></p>
+
+    <div class="result">
+      <div class="row">
+        <h2>Dein Ausbildungsbericht</h2>
+        <button id="copy" type="button">Kopieren</button>
+      </div>
+
+      <div id="report" class="report empty"></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="weeks-title">
+    <div class="row section-heading">
+      <h2 id="weeks-title">Deine Wochenberichte</h2>
+      <button id="refresh" type="button">Aktualisieren</button>
+    </div>
+
+    <p class="muted">
+      Eine Woche öffnen, um die gespeicherten Tagesberichte anzuzeigen.
+    </p>
+
+    <div class="row week-controls">
+      <label for="week-date">Woche auswählen</label>
+      <input type="date" id="week-date">
+      <button id="open-week" type="button">Woche laden</button>
+    </div>
+
+    <p id="history-error" class="error" role="alert"></p>
+    <p id="history-status" class="muted" role="status"></p>
+
+    <div id="weeks"></div>
+
+    <button id="older" type="button">
+      Weitere Wochen laden
+    </button>
+
+    <p class="footer">
+      Berichte werden aus der Datenbank geladen.
+      Ursprüngliche Notizen werden nicht dauerhaft im Browser gespeichert.
+    </p>
+  </section>
+</main>
+</body>
+</html>
