@@ -6,6 +6,7 @@ from contextlib import asynccontextmanager, suppress
 import asyncio
 
 import ollama
+from starlette.datastructures import QueryParams
 import uvicorn
 from fastapi import (
     Depends,
@@ -139,3 +140,26 @@ async def get_reports_for_week(
         )
 
     return report_file
+
+
+@api_router.get("/weeks", response_model=list[schemas.ReportFileWithReportsResponse])
+async def get_reports_for_weeks(
+    db: GetAsyncDBSessionDependency,
+    limit: Annotated[int, Query()] = 10,
+    offset: Annotated[int, Query()] = 0,
+):
+
+    report_files = await crud.get_report_files(
+        db=db,
+        limit=limit,
+        offset=offset,
+        include_reports=True
+    )
+
+    if not report_files:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Keine Berichte vorhanden!"
+        )
+
+    return report_files
