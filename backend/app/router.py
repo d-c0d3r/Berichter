@@ -32,7 +32,7 @@ api_router = APIRouter(prefix="/api/v1", tags=["Reports"])
 
 
 @api_router.post(
-    "/report",
+    "/reports",
     response_class=StreamingResponse,
     status_code=status.HTTP_200_OK,
 )
@@ -108,7 +108,7 @@ async def generate_report(
     )
 
 
-@api_router.get("/report/{report_date}", response_model=schemas.ReportResponse)
+@api_router.get("/reports/{report_date}", response_model=schemas.ReportResponse)
 async def get_report_by_date(
     db: GetAsyncDBSessionDependency, report_date: Annotated[date, Path()]
 ):
@@ -124,10 +124,10 @@ async def get_report_by_date(
     return report
 
 
-@api_router.get("/week", response_model=schemas.ReportFileWithReportsResponse)
+@api_router.get("/report-files/{target_date}", response_model=schemas.ReportFileWithReportsResponse)
 async def get_reports_for_week(
     db: GetAsyncDBSessionDependency,
-    target_date: Annotated[date, Query()] = date.today(),
+    target_date: Annotated[date, Path()],
 ):
 
     report_file = await crud.get_report_file_by_date(
@@ -142,7 +142,7 @@ async def get_reports_for_week(
     return report_file
 
 
-@api_router.get("/weeks", response_model=list[schemas.ReportFileWithReportsResponse])
+@api_router.get("/report-files", response_model=list[schemas.ReportFileWithReportsResponse])
 async def get_reports_for_weeks(
     db: GetAsyncDBSessionDependency,
     limit: Annotated[int, Query()] = 10,
@@ -155,11 +155,5 @@ async def get_reports_for_weeks(
         offset=offset,
         include_reports=True
     )
-
-    if not report_files:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Keine Berichte vorhanden!"
-        )
 
     return report_files
