@@ -83,8 +83,9 @@ def fill_report_file(report_file: models.ReportFile):
     if report_file.reports:
         table = report_file_document.tables[0]
 
-        total_reports = len(report_file.reports)
-        current_report = 0
+        reports_dict = {}
+        for report in report_file.reports:
+            reports_dict[report.report_date.weekday()] = report
 
         # For each report in report file update an appropriate row
         for day in range(0, 5):
@@ -92,14 +93,8 @@ def fill_report_file(report_file: models.ReportFile):
             working_cell = row.cells[1]
 
             # Update an appropriate report for current day if it exists
-            if (
-                current_report < total_reports
-                and report_file.reports[current_report].report_date.weekday() == day
-            ):
-                working_cell.paragraphs[0].text = report_file.reports[
-                    current_report
-                ].content
-                current_report += 1
+            if day in reports_dict.keys():
+                working_cell.paragraphs[0].text = reports_dict[day].content
 
     # Save the report file
     report_file_document.save(report_file_path)
