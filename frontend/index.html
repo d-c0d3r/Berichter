@@ -49,10 +49,6 @@
           ✦ Bericht erstellen
         </button>
 
-        <button id="retry" type="button">
-          ↻ Erneut versuchen
-        </button>
-
         <button id="stop" type="button" hidden>
           Stoppen
         </button>
@@ -76,18 +72,36 @@
   <section aria-labelledby="weeks-title">
     <div class="row section-heading">
       <h2 id="weeks-title">Deine Wochenberichte</h2>
-      <button id="refresh" type="button">Aktualisieren</button>
+      <div class="actions">
+        <button id="refresh" type="button">Aktualisieren</button>
+        <button id="export-toggle" type="button" aria-expanded="false" aria-controls="export-panel">Export ▾</button>
+      </div>
     </div>
+
+
+    <section id="export-panel" class="card export-panel" aria-labelledby="export-title" hidden>
+      <h3 id="export-title">Wochenberichte als ZIP exportieren</h3>
+      <form id="export-form">
+        <fieldset id="export-options">
+          <label class="export-choice"><input type="radio" name="export-mode" value="range" checked> Zeitraum auswählen</label>
+          <label class="export-choice"><input type="radio" name="export-mode" value="all"> Alle verfügbaren Wochen</label>
+          <div id="export-range" class="export-dates">
+            <label>Von (Woche mit diesem Datum)<input id="export-start" type="date" required></label>
+            <label>Bis (Woche mit diesem Datum)<input id="export-end" type="date" required></label>
+          </div>
+          <p id="export-preview" class="muted"></p>
+          <p class="muted">Exportiert werden vollständige Wochen von Montag bis Sonntag.</p>
+          <button id="export-download" class="primary" type="submit">ZIP herunterladen</button>
+        </fieldset>
+        <button id="export-cancel" type="button" hidden>Abbrechen</button>
+      </form>
+      <p id="export-status" class="muted" role="status" aria-live="polite"></p>
+      <p id="export-error" class="error" role="alert"></p>
+    </section>
 
     <p class="muted">
       Eine Woche öffnen, um die gespeicherten Tagesberichte anzuzeigen.
     </p>
-
-    <div class="row week-controls">
-      <label for="week-date">Woche auswählen</label>
-      <input type="date" id="week-date">
-      <button id="open-week" type="button">Woche laden</button>
-    </div>
 
     <p id="history-error" class="error" role="alert"></p>
     <p id="history-status" class="muted" role="status"></p>

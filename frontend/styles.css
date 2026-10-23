@@ -204,12 +204,6 @@ textarea:disabled {
   margin: 34px 0 8px;
 }
 
-.week-controls {
-  justify-content: flex-start;
-  flex-wrap: wrap;
-  margin: 18px 0;
-}
-
 #history-status {
   margin: 12px 0;
 }
@@ -310,4 +304,20 @@ textarea:disabled {
   button {
     padding: 9px 11px;
   }
+}
+
+.export-panel { margin-top: 18px; }
+.export-panel h3 { margin-bottom: 16px; }
+.export-panel fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
+.export-panel legend { color: var(--muted); margin-bottom: 8px; }
+.export-choice { display: block; margin: 8px 0; cursor: pointer; }
+.export-choice input { accent-color: var(--accent); margin-right: 8px; }
+.export-dates { display: flex; flex-wrap: wrap; gap: 16px; margin: 18px 0 10px; }
+.export-dates label { display: flex; flex: 1; min-width: 190px; flex-direction: column; gap: 7px; }
+.export-panel .muted { margin: 10px 0; }
+#export-download { margin-top: 12px; }
+#export-cancel { margin-top: 10px; }
+@media (max-width: 640px) {
+  .section-heading { align-items: flex-start; flex-direction: column; gap: 12px; }
+  .export-dates { flex-direction: column; }
 }

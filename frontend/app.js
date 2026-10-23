@@ -22,7 +22,6 @@ let generationController = null;
 let weeksOffset = 0;
 let weeksHasMore = true;
 let weeksLoading = false;
-let weekLookupLoading = false;
 
 let historyVersion = 0;
 let historyController = null;
@@ -184,7 +183,7 @@ function emptyWeek(key) {
 
 async function fetchReport(key, signal) {
   const response = await fetch(
-    api(`/report/${encodeURIComponent(key)}`),
+    api(`/reports/${encodeURIComponent(key)}`),
     {
       signal,
       cache: "no-store",
@@ -223,7 +222,6 @@ function updateControls() {
     length > MAX_NOTES;
 
   $("generate").disabled = busy || loadingDay || invalid;
-  $("retry").disabled = busy || loadingDay || invalid;
 
   $("notes").disabled = busy;
   $("selected-date").disabled = busy;
@@ -236,12 +234,10 @@ function updateControls() {
 }
 
 function updateHistoryControls() {
-  $("refresh").disabled = weeksLoading || weekLookupLoading;
-  $("open-week").disabled = weeksLoading || weekLookupLoading;
+  $("refresh").disabled = weeksLoading;
 
   $("older").disabled =
     weeksLoading ||
-    weekLookupLoading ||
     !weeksHasMore;
 
   $("older").textContent = weeksLoading
@@ -286,7 +282,6 @@ async function selectDay(next) {
   $("notes").value = drafts.get(day) || "";
   $("error").textContent = "";
   $("status").textContent = "Bericht wird geladen …";
-  $("week-date").value = next;
 
   showReport("", "Bericht wird aus der Datenbank geladen …");
   updateDateLabels();
@@ -466,7 +461,7 @@ async function loadWeeks({ reset = false } = {}) {
     });
 
     const response = await fetch(
-      api(`/weeks?${params}`),
+      api(`/report-files?${params}`),
       {
         signal: controller.signal,
         cache: "no-store",
@@ -482,7 +477,7 @@ async function loadWeeks({ reset = false } = {}) {
 
       if (!Array.isArray(body)) {
         throw new Error(
-          "Ungültige Antwort: /weeks muss ein Array zurückgeben."
+          "Ungültige Antwort: /report-files muss ein Array zurückgeben."
         );
       }
 
@@ -582,7 +577,7 @@ async function ensureWeek(target, open = false, force = false) {
 
   try {
     const response = await fetch(
-      api(`/week?target_date=${encodeURIComponent(key)}`),
+      api(`/report-files/${encodeURIComponent(key)}`),
       { cache: "no-store" }
     );
 
@@ -678,7 +673,7 @@ async function generate() {
 
   try {
     const response = await fetch(
-      api(`/report?date_now=${encodeURIComponent(requestDay)}`),
+      api(`/reports?date_now=${encodeURIComponent(requestDay)}`),
       {
         method: "POST",
         headers: {
@@ -694,10 +689,17 @@ async function generate() {
     showReport("", "Bericht wird geschrieben …");
     $("status").textContent = "Bericht wird geschrieben …";
 
-    await streamText(response, text => {
-      output += text;
+    if ((response.headers.get("Content-Type") || "").includes("application/json")) {
+      const result = await response.json();
+      output = typeof result === "string" ? result :
+        (typeof result?.content === "string" ? result.content : "");
       showReport(output);
-    });
+    } else {
+      await streamText(response, text => {
+        output += text;
+        showReport(output);
+      });
+    }
 
     if (!output.trim()) {
       throw new Error(
@@ -756,7 +758,6 @@ $("selected-date").addEventListener("change", event => {
 
 $("today").onclick = () => selectDay(dayKey());
 $("generate").onclick = generate;
-$("retry").onclick = generate;
 
 $("stop").onclick = () => {
   generationController?.abort();
@@ -779,33 +780,6 @@ $("copy").onclick = async () => {
     $("error").textContent =
       "Bitte markiere den Text und kopiere ihn manuell.";
   }
-};
-
-$("open-week").onclick = async () => {
-  if (weeksLoading || weekLookupLoading) return;
-
-  const key = $("week-date").value;
-
-  if (!validDay(key)) {
-    $("history-error").textContent =
-      "Bitte ein gültiges Datum auswählen.";
-    return;
-  }
-
-  $("history-error").textContent = "";
-  weekLookupLoading = true;
-  updateHistoryControls();
-
-  try {
-    await ensureWeek(key, true, true);
-  } finally {
-    weekLookupLoading = false;
-    updateHistoryControls();
-  }
-};
-
-$("week-date").onchange = () => {
-  $("history-error").textContent = "";
 };
 
 $("refresh").onclick = () => {
@@ -837,3 +811,129 @@ window.addEventListener("beforeunload", event => {
 
 selectDay(dayKey());
 loadWeeks({ reset: true });
+
+let exportController = null;
+function exportMode() {
+  return document.querySelector('input[name="export-mode"]:checked').value;
+}
+function updateExportPreview() {
+  const all = exportMode() === "all";
+  $("export-range").hidden = all;
+  for (const id of ["export-start", "export-end"]) {
+    $(id).disabled = all;
+    $(id).required = !all;
+  }
+  const start = $("export-start").value;
+  const end = $("export-end").value;
+  $("export-preview").textContent = all
+    ? "Alle verfügbaren Wochen werden aus der API ermittelt, auch noch nicht angezeigte."
+    : validDay(start) && validDay(end)
+      ? `Export: ${shortDate(monday(start))} – ${shortDate(shiftDay(monday(end), 6))}`
+      : "Bitte Start- und Endwoche auswählen.";
+}
+async function availableExportRange(signal) {
+  const seen = new Set();
+  let offset = 0;
+  while (true) {
+    const params = new URLSearchParams({ limit: "100", offset: String(offset) });
+    const response = await fetch(api(`/report-files?${params}`), { signal, cache: "no-store" });
+    if (!response.ok) throw await httpError(response);
+    const items = await response.json();
+    if (!Array.isArray(items)) throw new Error("Die Wochenliste ist kein Array.");
+    if (!items.length) break;
+    const previousSize = seen.size;
+    for (const item of items) {
+      if (!validDay(item.week_start)) throw new Error("Ungültiges week_start in der Wochenliste.");
+      seen.add(monday(item.week_start));
+    }
+    if (seen.size === previousSize) throw new Error("Die API wiederholt dieselben Wochen. Pagination prüfen.");
+    offset += items.length;
+    $("export-status").textContent = `${seen.size} verfügbare Wochen ermittelt …`;
+  }
+  const keys = [...seen].sort();
+  if (!keys.length) throw new Error("Keine Wochenberichte zum Exportieren vorhanden.");
+  return { start: keys[0], end: shiftDay(keys[keys.length - 1], 6) };
+}
+function archiveFilename(response) {
+  const header = response.headers.get("Content-Disposition") || "";
+  const encoded = header.match(/filename\*\s*=\s*UTF-8''([^;]+)/i);
+  let name = "";
+  if (encoded) {
+    try { name = decodeURIComponent(encoded[1].trim()); } catch {}
+  }
+  if (!name) {
+    const plain = header.match(/filename\s*=\s*(?:"([^"]+)"|([^;]+))/i);
+    name = plain ? (plain[1] || plain[2]).trim() : "Berichte.zip";
+  }
+  name = name.split(/[\\/]/).pop().replace(/[\x00-\x1f\x7f]/g, "");
+  return name && /\.zip$/i.test(name) ? name : "Berichte.zip";
+}
+async function exportArchive(event) {
+  event.preventDefault();
+  if (exportController) return;
+  const mode = exportMode();
+  let start, end;
+  if (mode === "range") {
+    const first = $("export-start").value;
+    const last = $("export-end").value;
+    if (!validDay(first) || !validDay(last) || monday(first) > monday(last)) {
+      $("export-error").textContent = "Bitte einen gültigen Zeitraum wählen. Die Startwoche darf nicht nach der Endwoche liegen.";
+      return;
+    }
+    start = monday(first);
+    end = shiftDay(monday(last), 6);
+  }
+  const controller = new AbortController();
+  exportController = controller;
+  $("export-options").disabled = true;
+  $("export-cancel").hidden = false;
+  $("export-error").textContent = "";
+  $("export-status").textContent = "Export wird vorbereitet …";
+  try {
+    if (mode === "all") ({ start, end } = await availableExportRange(controller.signal));
+    $("export-status").textContent = `ZIP für ${shortDate(start)} – ${shortDate(end)} wird erstellt …`;
+    const params = new URLSearchParams({ start_date: start, end_date: end });
+    const response = await fetch(api(`/reports-files/archive?${params}`), {
+      method: "POST",
+      headers: { Accept: "application/zip, applications/zip, application/octet-stream" },
+      signal: controller.signal,
+      cache: "no-store",
+    });
+    if (!response.ok) throw await httpError(response);
+    if (/json|text\/html/i.test(response.headers.get("Content-Type") || "")) {
+      throw new Error("Die API hat kein ZIP-Archiv zurückgegeben.");
+    }
+    const blob = await response.blob();
+    if (!blob.size) throw new Error("Das Archiv ist leer.");
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = archiveFilename(response);
+    document.body.append(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+    $("export-status").textContent = `Download gestartet: ${shortDate(start)} – ${shortDate(end)}.`;
+  } catch (error) {
+    $("export-status").textContent = error.name === "AbortError" ? "Export abgebrochen." : "Export fehlgeschlagen.";
+    if (error.name !== "AbortError") $("export-error").textContent = errorText(error);
+  } finally {
+    exportController = null;
+    $("export-options").disabled = false;
+    $("export-cancel").hidden = true;
+    updateExportPreview();
+  }
+}
+$("export-toggle").onclick = () => {
+  $("export-panel").hidden = !$("export-panel").hidden;
+  $("export-toggle").setAttribute("aria-expanded", String(!$("export-panel").hidden));
+};
+$("export-form").addEventListener("submit", exportArchive);
+$("export-form").addEventListener("change", () => {
+  $("export-error").textContent = "";
+  updateExportPreview();
+});
+$("export-cancel").onclick = () => exportController?.abort();
+$("export-start").value = monday(dayKey());
+$("export-end").value = dayKey();
+updateExportPreview();
