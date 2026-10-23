@@ -46,7 +46,6 @@ async def generate_report(
 ):
 
     message = {"role": "user", "content": notes}
-    queue = request.app.state.queue
     chunks = []
 
     async def generate_report():
@@ -71,14 +70,6 @@ async def generate_report(
                 db=db, target_date=date_now, report_number=report_number
             )
 
-            queue.put_nowait(
-                {
-                    "title": "create_report_file",
-                    "report_number": report_number,
-                    "target_date": date_now,
-                }
-            )
-
         # Request report
         report = await crud.get_report_by_date(db=db, report_date=date_now)
 
@@ -93,15 +84,6 @@ async def generate_report(
             report = await crud.update_report_by_date(
                 db=db, report_date=date_now, new_content=content
             )
-
-        queue.put_nowait(
-            {
-                "title": "update_report_file",
-                "target_report_filename": report_file.filename,
-                "target_date": date_now,
-                "content": content,
-            }
-        )
 
     return StreamingResponse(
         generate_report(),
