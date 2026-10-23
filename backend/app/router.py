@@ -1,12 +1,11 @@
-from datetime import date
-from calendar import weekday
+from datetime import date, timedelta
 from time import time
 from typing import Annotated
 from contextlib import asynccontextmanager, suppress
 import asyncio
+import zipfile
 
 import ollama
-from starlette.datastructures import QueryParams
 import uvicorn
 from fastapi import (
     Depends,
@@ -15,15 +14,18 @@ from fastapi import (
     HTTPException,
     Path,
     Query,
+    applications,
     status,
     Request,
+    Path
 )
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy import select, update
 
-from app import crud, schemas
+from app import crud, schemas, helpers, docxutil
+
 from app.settings import settings, OLLAMA_CLIENT
 from app.database import GetAsyncDBSessionDependency
 
@@ -157,3 +159,44 @@ async def get_reports_for_weeks(
     )
 
     return report_files
+    
+
+@api_router.post(
+    "/reports-files/archive",
+    response_class=FileResponse
+)
+async def generate_report_file_and_send_as_zip(
+    db: GetAsyncDBSessionDependency,
+    start_date: Annotated[date, Query()],
+    end_date: Annotated[date, Query()]
+):
+
+    start_week_date, _ = helpers.get_week_bounds(start_date)
+    end_week_date, _ = helpers.get_week_bounds(end_date)
+    current_week_date = start_week_date
+
+    files = []
+
+    while current_week_date <= end_week_date:
+
+        current_report_file = await crud.get_report_file_by_date(
+            db=db,
+            target_date=current_week_date,
+            include_reports=True
+        )
+
+        if current_report_file:
+            filepath = docxutil.fill_report_file(report_file=current_report_file)
+            files.append(filepath)
+
+        current_week_date += timedelta(days=7)
+
+    zip_file = docxutil.report_files_to_zip(files=files)
+
+    return FileResponse(
+        path=zip_file,
+        status_code=200,
+        filename="Berichte.zip",
+        media_type="applications/zip"
+    )
+    
