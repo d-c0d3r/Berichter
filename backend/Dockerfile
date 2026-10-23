@@ -14,7 +14,9 @@ RUN uv sync --no-install-project --no-dev
 
 COPY backend/ /app/backend/
 RUN mkdir -p /data
+
 WORKDIR /app/backend
 
 EXPOSE 8000
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+
+CMD ["sh", "-c", "alembic upgrade head && exec uvicorn app.main:app --host 0.0.0.0 --port 8000"]
