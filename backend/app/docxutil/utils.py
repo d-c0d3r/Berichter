@@ -2,10 +2,11 @@ from datetime import date
 import os
 
 import docx
+import zipfile
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 
 from app.settings import settings
-from app import helpers
+from app import helpers, models
 
 
 def create_report_file(report_number: int, target_date: date):
@@ -22,8 +23,14 @@ def create_report_file(report_number: int, target_date: date):
 
     # Create new report file from template and return it's path
     filepath = helpers.new_report_file_from_template(
-        os.path.join(settings.REPORTS_DIRECTORY, settings.TEMPLATE_REPORT_FILENAME),
-        os.path.join(settings.REPORTS_DIRECTORY, target_report_file),
+        os.path.join(
+            settings.REPORTS_DIRECTORY,
+            settings.TEMPLATE_REPORT_FILENAME
+        ),
+        os.path.join(
+            settings.REPORTS_DIRECTORY,
+            target_report_file
+        ),
     )
 
     # Open the report file
@@ -73,3 +80,32 @@ def update_report_file(target_report_filename: str, target_date: date, content: 
     report.save(filepath)
 
 
+def fill_report_file(report_file: models.ReportFile):
+
+    report_file_document, report_file_path = create_report_file(
+        report_number=report_file.id,
+        target_date=report_file.week_start
+    )
+
+    if report_file.reports:
+        table = report_file_document.tables[0]
+
+        total_reports = len(report_file.reports)
+        current_report = 0
+
+        # For each report in report file update an appropriate row
+        for day in range(0, 5):
+            row = table.rows[day+1]
+            working_cell = row.cells[1]
+
+            # Update an appropriate report for current day if it exists
+            if current_report < total_reports and \
+            report_file.reports[current_report].report_date.weekday() == day:
+                working_cell.paragraphs[0].text = report_file.reports[current_report].content
+                current_report += 1
+
+    # Save the report file
+    report_file_document.save(report_file_path)
+
+    # Return created report file path
+    return report_file_path
