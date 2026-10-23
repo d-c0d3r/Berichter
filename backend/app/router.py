@@ -3,7 +3,7 @@ from time import time
 from typing import Annotated
 from contextlib import asynccontextmanager, suppress
 import asyncio
-import zipfile
+import zipfile, os
 
 import ollama
 import uvicorn
@@ -159,7 +159,7 @@ async def get_reports_for_weeks(
     )
 
     return report_files
-    
+
 
 @api_router.post(
     "/reports-files/archive",
@@ -196,7 +196,6 @@ async def generate_report_file_and_send_as_zip(
     return FileResponse(
         path=zip_file,
         status_code=200,
-        filename="Berichte.zip",
+        filename=os.path.basename(zip_file),
         media_type="applications/zip"
     )
-    
