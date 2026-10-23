@@ -35,14 +35,16 @@ async def create_new_report_file(
 
 
 async def get_report_files(
-    db: AsyncSession,
-    limit: int = 10,
-    offset: int = 0,
-    include_reports: bool = False
+    db: AsyncSession, limit: int = 10, offset: int = 0, include_reports: bool = False
 ):
 
     # Search for report files with the specified limit and offset
-    stmt = select(models.ReportFile).order_by(desc(models.ReportFile.week_start)).limit(limit).offset(offset)
+    stmt = (
+        select(models.ReportFile)
+        .order_by(desc(models.ReportFile.week_start))
+        .limit(limit)
+        .offset(offset)
+    )
 
     if include_reports:
         stmt = stmt.options(selectinload(models.ReportFile.reports))

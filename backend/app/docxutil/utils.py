@@ -23,14 +23,8 @@ def create_report_file(report_number: int, target_date: date):
 
     # Create new report file from template and return it's path
     filepath = helpers.new_report_file_from_template(
-        os.path.join(
-            settings.REPORTS_DIRECTORY,
-            settings.TEMPLATE_REPORT_FILENAME
-        ),
-        os.path.join(
-            settings.REPORTS_DIRECTORY,
-            target_report_file
-        ),
+        os.path.join(settings.REPORTS_DIRECTORY, settings.TEMPLATE_REPORT_FILENAME),
+        os.path.join(settings.REPORTS_DIRECTORY, target_report_file),
     )
 
     # Open the report file
@@ -83,8 +77,7 @@ def update_report_file(target_report_filename: str, target_date: date, content: 
 def fill_report_file(report_file: models.ReportFile):
 
     report_file_document, report_file_path = create_report_file(
-        report_number=report_file.id,
-        target_date=report_file.week_start
+        report_number=report_file.id, target_date=report_file.week_start
     )
 
     if report_file.reports:
@@ -95,13 +88,17 @@ def fill_report_file(report_file: models.ReportFile):
 
         # For each report in report file update an appropriate row
         for day in range(0, 5):
-            row = table.rows[day+1]
+            row = table.rows[day + 1]
             working_cell = row.cells[1]
 
             # Update an appropriate report for current day if it exists
-            if current_report < total_reports and \
-            report_file.reports[current_report].report_date.weekday() == day:
-                working_cell.paragraphs[0].text = report_file.reports[current_report].content
+            if (
+                current_report < total_reports
+                and report_file.reports[current_report].report_date.weekday() == day
+            ):
+                working_cell.paragraphs[0].text = report_file.reports[
+                    current_report
+                ].content
                 current_report += 1
 
     # Save the report file
@@ -113,10 +110,12 @@ def fill_report_file(report_file: models.ReportFile):
 
 def report_files_to_zip(files: list[str]):
 
-    zip_filename = f"berichter-export-{date.today().strftime("%d-%m-%Y")}.zip"
+    zip_filename = f"berichter-export-{date.today().strftime('%d-%m-%Y')}.zip"
     zip_filepath = os.path.join(settings.REPORTS_DIRECTORY, zip_filename)
 
-    with zipfile.ZipFile(file=zip_filepath, compression=zipfile.ZIP_DEFLATED, mode="w") as zip_file:
+    with zipfile.ZipFile(
+        file=zip_filepath, compression=zipfile.ZIP_DEFLATED, mode="w"
+    ) as zip_file:
         for file in files:
             zip_file.write(file)
 

@@ -17,7 +17,7 @@ from fastapi import (
     applications,
     status,
     Request,
-    Path
+    Path,
 )
 from fastapi.responses import StreamingResponse, FileResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -126,7 +126,9 @@ async def get_report_by_date(
     return report
 
 
-@api_router.get("/report-files/{target_date}", response_model=schemas.ReportFileWithReportsResponse)
+@api_router.get(
+    "/report-files/{target_date}", response_model=schemas.ReportFileWithReportsResponse
+)
 async def get_reports_for_week(
     db: GetAsyncDBSessionDependency,
     target_date: Annotated[date, Path()],
@@ -144,7 +146,9 @@ async def get_reports_for_week(
     return report_file
 
 
-@api_router.get("/report-files", response_model=list[schemas.ReportFileWithReportsResponse])
+@api_router.get(
+    "/report-files", response_model=list[schemas.ReportFileWithReportsResponse]
+)
 async def get_reports_for_weeks(
     db: GetAsyncDBSessionDependency,
     limit: Annotated[int, Query()] = 10,
@@ -152,23 +156,17 @@ async def get_reports_for_weeks(
 ):
 
     report_files = await crud.get_report_files(
-        db=db,
-        limit=limit,
-        offset=offset,
-        include_reports=True
+        db=db, limit=limit, offset=offset, include_reports=True
     )
 
     return report_files
 
 
-@api_router.post(
-    "/reports-files/archive",
-    response_class=FileResponse
-)
+@api_router.post("/reports-files/archive", response_class=FileResponse)
 async def generate_report_file_and_send_as_zip(
     db: GetAsyncDBSessionDependency,
     start_date: Annotated[date, Query()],
-    end_date: Annotated[date, Query()]
+    end_date: Annotated[date, Query()],
 ):
 
     start_week_date, _ = helpers.get_week_bounds(start_date)
@@ -178,11 +176,8 @@ async def generate_report_file_and_send_as_zip(
     files = []
 
     while current_week_date <= end_week_date:
-
         current_report_file = await crud.get_report_file_by_date(
-            db=db,
-            target_date=current_week_date,
-            include_reports=True
+            db=db, target_date=current_week_date, include_reports=True
         )
 
         if current_report_file:
@@ -197,5 +192,5 @@ async def generate_report_file_and_send_as_zip(
         path=zip_file,
         status_code=200,
         filename=os.path.basename(zip_file),
-        media_type="applications/zip"
+        media_type="applications/zip",
     )
