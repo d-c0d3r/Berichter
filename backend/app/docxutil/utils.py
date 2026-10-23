@@ -109,3 +109,15 @@ def fill_report_file(report_file: models.ReportFile):
 
     # Return created report file path
     return report_file_path
+
+
+def report_files_to_zip(files: list[str]):
+
+    zip_filename = f"berichter-export-{date.today().strftime("%d-%m-%Y")}.zip"
+    zip_filepath = os.path.join(settings.REPORTS_DIRECTORY, zip_filename)
+
+    with zipfile.ZipFile(file=zip_filepath, compression=zipfile.ZIP_DEFLATED, mode="w") as zip_file:
+        for file in files:
+            zip_file.write(file)
+
+    return zip_filepath
