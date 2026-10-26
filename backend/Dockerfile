@@ -13,10 +13,14 @@ COPY pyproject.toml ./
 RUN uv sync --no-install-project --no-dev
 
 COPY backend/ /app/backend/
+COPY --chmod=755 backend/entrypoint.sh /app/backend/entrypoint.sh
+
 RUN mkdir -p /data
 
 WORKDIR /app/backend
 
 EXPOSE 8000
 
-CMD ["sh", "-c", "alembic upgrade head && exec uvicorn app.main:app --host 0.0.0.0 --port 8000"]
+ENTRYPOINT ["/app/backend/entrypoint.sh"]
+
+CMD ["sh", "-c", "exec uvicorn app.main:app --host 0.0.0.0 --port 8000"]
