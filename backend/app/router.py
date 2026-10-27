@@ -49,15 +49,21 @@ async def generate_report(
     chunks = []
 
     async def generate_report():
-        async for part in await OLLAMA_CLIENT.chat(
-            model=settings.BERICHTER_MODEL, messages=[message], stream=True, think=False
-        ):
-            chunk = part["message"]["content"]
-            chunks.append(chunk)
-            yield chunk
+        try:
+            ollama_client = ollama.AsyncClient(settings.OLLAMA_URL)
+
+            async for part in await ollama_client.chat(
+                model=settings.BERICHTER_MODEL, messages=[message], stream=True, think=False
+            ):
+                chunk = part["message"]["content"]
+                chunks.append(chunk)
+                yield chunk
+
+        except Exception:
+            yield notes
 
         # Build content from generated parts
-        content = "".join(chunks)
+        content = "".join(chunks) if chunks else notes
 
         # Request report file
         report_file = await crud.get_report_file_by_date(db=db, target_date=date_now)
