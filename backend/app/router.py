@@ -26,7 +26,7 @@ from sqlalchemy import select, update
 
 from app import crud, schemas, helpers, docxutil
 
-from app.settings import settings, OLLAMA_CLIENT
+from app.settings import settings
 from app.database import GetAsyncDBSessionDependency
 
 
