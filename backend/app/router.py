@@ -79,22 +79,22 @@ async def generate_report(
             report_number = await crud.get_new_report_file_number(db=db)
 
             report_file = await crud.create_new_report_file(
-                db=db, target_date=date_now, report_number=report_number
+                db=db, target_date=target_date, report_number=report_number
             )
 
         # Request report
-        report = await crud.get_report_by_date(db=db, report_date=date_now)
+        report = await crud.get_report_by_date(db=db, report_date=target_date)
 
         if not report:
             # Create report if it doesn't exist
             report = await crud.create_new_report(
-                db=db, report_file=report_file, report_date=date_now, content=content
+                db=db, report_file=report_file, report_date=target_date, content=content
             )
 
         else:
             # Update report
             report = await crud.update_report_by_date(
-                db=db, report_date=date_now, new_content=content
+                db=db, report_date=target_date, new_content=content
             )
 
     return StreamingResponse(
