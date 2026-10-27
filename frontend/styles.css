@@ -37,8 +37,16 @@ main {
   margin: 4px 0 36px;
 }
 
+@keyframes pulse {
+  0% { transform: scale(1); opacity: .25; }
+  50% { transform: scale(1.4); opacity: 1; }
+  100% { transform: scale(1); opacity: .25; }
+}
+
 .brand span {
   color: var(--accent);
+  animation: pulse 3s infinite;
+  text-shadow: 0 0 10px var(--accent), 0 0 20px var(--accent); /* Glow effect */
 }
 
 .greeting {
