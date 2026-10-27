@@ -15,4 +15,3 @@ class BerichterSettings(BaseSettings):
 
 
 settings = BerichterSettings()  # type: ignore
-OLLAMA_CLIENT = ollama.AsyncClient(settings.OLLAMA_URL)
