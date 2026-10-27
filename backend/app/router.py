@@ -42,7 +42,7 @@ async def generate_report(
     db: GetAsyncDBSessionDependency,
     request: Request,
     notes: Annotated[str, Body(max_length=400)],
-    date_now: Annotated[date, Query()] = date.today(),
+    target_date: Annotated[date, Query()]
 ):
 
     if target_date.weekday() > 4:
@@ -72,7 +72,7 @@ async def generate_report(
         content = "".join(chunks) if chunks else notes
 
         # Request report file
-        report_file = await crud.get_report_file_by_date(db=db, target_date=date_now)
+        report_file = await crud.get_report_file_by_date(db=db, target_date=target_date)
 
         # Create report file if it doesn't exist
         if not report_file:
