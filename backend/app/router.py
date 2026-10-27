@@ -45,6 +45,12 @@ async def generate_report(
     date_now: Annotated[date, Query()] = date.today(),
 ):
 
+    if target_date.weekday() > 4:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail="Report can be created only on Mo-Fr!"
+        )
+
     message = {"role": "user", "content": notes}
     chunks = []
 
