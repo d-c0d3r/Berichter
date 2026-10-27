@@ -673,7 +673,7 @@ async function generate() {
 
   try {
     const response = await fetch(
-      api(`/reports?date_now=${encodeURIComponent(requestDay)}`),
+      api(`/reports?target_date=${encodeURIComponent(requestDay)}`),
       {
         method: "POST",
         headers: {
