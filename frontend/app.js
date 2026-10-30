@@ -13,6 +13,7 @@ const openedWeeks = new Set();
 
 let day = "";
 let busy = false;
+let aiEnabled = false;
 let loadingDay = false;
 let dayVersion = 0;
 
@@ -221,7 +222,10 @@ function updateControls() {
     !$("notes").value.trim() ||
     length > MAX_NOTES;
 
-  $("generate").disabled = busy || loadingDay || invalid;
+  $("generate").disabled = busy || loadingDay || invalid || !isWorkday(day);
+  $("generate").title = isWorkday(day) ? "" : "Berichte sind nur Montag bis Freitag möglich.";
+  $("ai-toggle").disabled = busy;
+  document.body.classList.toggle("is-generating", busy);
 
   $("notes").disabled = busy;
   $("selected-date").disabled = busy;
@@ -280,6 +284,7 @@ async function selectDay(next) {
   loadingDay = true;
 
   $("notes").value = drafts.get(day) || "";
+  renderAI();
   $("error").textContent = "";
   $("status").textContent = "Bericht wird geladen …";
 
@@ -461,7 +466,7 @@ async function loadWeeks({ reset = false } = {}) {
     });
 
     const response = await fetch(
-      api(`/report-files?${params}`),
+      api(`/report-files/?${params}`),
       {
         signal: controller.signal,
         cache: "no-store",
@@ -645,9 +650,54 @@ async function streamText(response, onText) {
   }
 }
 
+function withoutAI(notes) {
+  return ["urlaub", "krankmeldung"].includes(notes.trim().toLowerCase());
+}
+
+function isWorkday(key) {
+  if (!validDay(key)) return false;
+  const weekday = new Date(`${key}T12:00:00`).getDay();
+  return weekday >= 1 && weekday <= 5;
+}
+
+function renderAI() {
+  const bypass = withoutAI($("notes").value);
+  $("ai-panel").dataset.state = aiEnabled && !bypass ? "on" : "off";
+  $("ai-toggle").setAttribute("aria-checked", String(aiEnabled));
+  $("ai-status").textContent = bypass
+    ? "Urlaub / Krankmeldung · wird ohne KI gespeichert"
+    : aiEnabled
+    ? "Ein · Der nächste Bericht wird mit KI bearbeitet"
+    : "Aus · Notizen ohne KI speichern";
+  document.body.classList.toggle("ai-on", aiEnabled && !bypass);
+  $("generate").textContent = aiEnabled && !bypass
+    ? "✦ Bericht erstellen" : "Bericht speichern";
+  updateControls();
+}
+
+function toggleAI() {
+  if (busy) return;
+  aiEnabled = !aiEnabled;
+  renderAI();
+  if (aiEnabled) {
+    $("ai-panel").classList.remove("ai-activated");
+    void $("ai-panel").offsetWidth;
+    $("ai-panel").classList.add("ai-activated");
+  }
+}
+
+$("ai-toggle").addEventListener("click", toggleAI);
+$("ai-panel").addEventListener("animationend", event => {
+  if (event.animationName === "ai-activation") $("ai-panel").classList.remove("ai-activated");
+});
+
 async function generate() {
   if (busy || loadingDay) return;
 
+  if (!isWorkday(day)) {
+    $("error").textContent = "Berichte können nur Montag bis Freitag erstellt werden.";
+    return;
+  }
   const notes = $("notes").value.trim();
 
   if (
@@ -672,8 +722,12 @@ async function generate() {
   updateControls();
 
   try {
+    const params = new URLSearchParams({
+      target_date: requestDay,
+      use_ai: String(aiEnabled && !withoutAI(notes)),
+    });
     const response = await fetch(
-      api(`/reports?target_date=${encodeURIComponent(requestDay)}`),
+      api(`/reports/?${params}`),
       {
         method: "POST",
         headers: {
@@ -749,7 +803,7 @@ async function generate() {
 
 $("notes").addEventListener("input", () => {
   drafts.set(day, $("notes").value);
-  updateControls();
+  renderAI();
 });
 
 $("selected-date").addEventListener("change", event => {
@@ -809,6 +863,7 @@ window.addEventListener("beforeunload", event => {
   }
 });
 
+renderAI();
 selectDay(dayKey());
 loadWeeks({ reset: true });
 
@@ -836,7 +891,7 @@ async function availableExportRange(signal) {
   let offset = 0;
   while (true) {
     const params = new URLSearchParams({ limit: "100", offset: String(offset) });
-    const response = await fetch(api(`/report-files?${params}`), { signal, cache: "no-store" });
+    const response = await fetch(api(`/report-files/?${params}`), { signal, cache: "no-store" });
     if (!response.ok) throw await httpError(response);
     const items = await response.json();
     if (!Array.isArray(items)) throw new Error("Die Wochenliste ist kein Array.");
@@ -893,7 +948,7 @@ async function exportArchive(event) {
     if (mode === "all") ({ start, end } = await availableExportRange(controller.signal));
     $("export-status").textContent = `ZIP für ${shortDate(start)} – ${shortDate(end)} wird erstellt …`;
     const params = new URLSearchParams({ start_date: start, end_date: end });
-    const response = await fetch(api(`/reports-files/archive?${params}`), {
+    const response = await fetch(api(`/report-files/archive?${params}`), {
       method: "POST",
       headers: { Accept: "application/zip, applications/zip, application/octet-stream" },
       signal: controller.signal,

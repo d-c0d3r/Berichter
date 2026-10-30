@@ -29,6 +29,20 @@
       </div>
     </div>
 
+    <div id="ai-panel" class="ai-panel" data-state="off">
+      <div class="ai-description">
+          
+        <span class="ai-orb" aria-hidden="true">✦</span>
+        <div><h2 id="ai-label">KI-Assistent</h2>
+          <p id="ai-status" role="status" aria-live="polite">Aus · Notizen ohne KI speichern</p>
+        </div>
+      </div>
+      <button id="ai-toggle" class="ai-switch" type="button" role="switch"
+        aria-checked="false" aria-labelledby="ai-label" aria-describedby="ai-status">
+        <span class="ai-switch-thumb" aria-hidden="true"></span>
+      </button>
+    </div>
+
     <label class="notes-label" for="notes" id="notes-label">
       Was hast du heute gemacht?
     </label>
@@ -39,7 +53,7 @@
     ></textarea>
 
     <div class="row hint">
-      <span>Notizen bleiben nur in diesem Tab.</span>
+      <span>Max. 400 Zeichen · Berichte nur Mo–Fr.</span>
       <span id="length">0 / 400</span>
     </div>
 
