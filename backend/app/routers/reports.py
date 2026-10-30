@@ -45,14 +45,15 @@ async def generate_report(
             detail="Report can be created only on Mo-Fr!"
         )
 
-    async def generate_report():
+    async def generate_report(use_ai: bool):
+
         chunks = []
 
         if notes.lower() in ("urlaub", "krankmeldung"):
             use_ai = False
 
         try:
-            if use_ai: # type: ignore
+            if use_ai:
                 message = {"role": "user", "content": notes}
 
                 # Create new LLM connection if not already set
@@ -73,7 +74,7 @@ async def generate_report(
             else:
                 yield notes
 
-        except Exception:
+        except Exception as ex:
             yield notes
 
         # Build content from generated parts
@@ -106,7 +107,7 @@ async def generate_report(
             )
 
     return StreamingResponse(
-        generate_report(),
+        generate_report(use_ai=use_ai),
         status_code=status.HTTP_206_PARTIAL_CONTENT,
         media_type="text/plain",
     )
