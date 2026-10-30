@@ -6,8 +6,8 @@
 
   <title>Berichter</title>
 
-  <link rel="stylesheet" href="styles.css">
-  <script src="app.js" defer></script>
+  <link rel="stylesheet" href="styles.css?v=nav-final-3">
+  <script src="app.js?v=nav-final-3" defer></script>
 </head>
 
 <body>
@@ -16,22 +16,29 @@
     berichter<span>.</span>
   </div>
 
+
   <p id="greeting" class="greeting"></p>
 
   <section class="card" aria-labelledby="day-title">
+
     <div class="row heading">
       <h1 id="day-title">Heute</h1>
 
-      <div class="actions">
-        <label for="selected-date">Datum</label>
-        <input id="selected-date" type="date" required>
-        <button id="today" type="button">Heute</button>
+      <div class="date-controls">
+        <div class="date-navigation" role="group" aria-label="Datum wechseln">
+          <button type="button" data-shift-days="-7" title="7 Tage zurück" aria-label="7 Tage zurück">−7</button>
+          <button type="button" data-shift-days="-1" title="1 Tag zurück" aria-label="1 Tag zurück">−1</button>
+          <input id="selected-date" type="date" required>
+          <button type="button" data-shift-days="1" title="1 Tag weiter" aria-label="1 Tag weiter">+1</button>
+          <button type="button" data-shift-days="7" title="7 Tage weiter" aria-label="7 Tage weiter">+7</button>
+          <button id="today" type="button">Heute</button>
+        </div>
       </div>
     </div>
 
     <div id="ai-panel" class="ai-panel" data-state="off">
       <div class="ai-description">
-          
+
         <span class="ai-orb" aria-hidden="true">✦</span>
         <div><h2 id="ai-label">KI-Assistent</h2>
           <p id="ai-status" role="status" aria-live="polite">Aus · Notizen ohne KI speichern</p>
@@ -43,6 +50,7 @@
       </button>
     </div>
 
+
     <label class="notes-label" for="notes" id="notes-label">
       Was hast du heute gemacht?
     </label>
@@ -53,7 +61,7 @@
     ></textarea>
 
     <div class="row hint">
-      <span>Max. 400 Zeichen · Berichte nur Mo–Fr.</span>
+      <span>Notizen bleiben nur in diesem Tab.</span>
       <span id="length">0 / 400</span>
     </div>
 

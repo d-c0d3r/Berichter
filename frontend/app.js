@@ -222,14 +222,14 @@ function updateControls() {
     !$("notes").value.trim() ||
     length > MAX_NOTES;
 
-  $("generate").disabled = busy || loadingDay || invalid || !isWorkday(day);
-  $("generate").title = isWorkday(day) ? "" : "Berichte sind nur Montag bis Freitag möglich.";
+  $("generate").disabled = busy || loadingDay || invalid;
   $("ai-toggle").disabled = busy;
   document.body.classList.toggle("is-generating", busy);
 
   $("notes").disabled = busy;
   $("selected-date").disabled = busy;
   $("today").disabled = busy || day === dayKey();
+  document.querySelectorAll("[data-shift-days]").forEach(button => { button.disabled = busy; });
   $("stop").hidden = !busy;
 
   document.querySelectorAll("[data-open-day]").forEach(button => {
@@ -304,7 +304,7 @@ async function selectDay(next) {
 
     $("status").textContent = report
       ? "Aus Datenbank geladen"
-      : "Noch kein Bericht";
+      : "";
   } catch (error) {
     if (
       version !== dayVersion ||
@@ -653,37 +653,19 @@ async function streamText(response, onText) {
 function withoutAI(notes) {
   return ["urlaub", "krankmeldung"].includes(notes.trim().toLowerCase());
 }
-
-function isWorkday(key) {
-  if (!validDay(key)) return false;
-  const weekday = new Date(`${key}T12:00:00`).getDay();
-  return weekday >= 1 && weekday <= 5;
-}
-
 function renderAI() {
   const bypass = withoutAI($("notes").value);
   $("ai-panel").dataset.state = aiEnabled && !bypass ? "on" : "off";
   $("ai-toggle").setAttribute("aria-checked", String(aiEnabled));
-  $("ai-status").textContent = bypass
-    ? "Urlaub / Krankmeldung · wird ohne KI gespeichert"
-    : aiEnabled
-    ? "Ein · Der nächste Bericht wird mit KI bearbeitet"
-    : "Aus · Notizen ohne KI speichern";
+  $("ai-status").textContent = bypass ? "Urlaub / Krankmeldung · ohne KI"
+    : aiEnabled ? "Ein · KI für den nächsten Bericht verwenden" : "Aus · Notizen ohne KI speichern";
   document.body.classList.toggle("ai-on", aiEnabled && !bypass);
-  $("generate").textContent = aiEnabled && !bypass
-    ? "✦ Bericht erstellen" : "Bericht speichern";
   updateControls();
 }
-
 function toggleAI() {
   if (busy) return;
   aiEnabled = !aiEnabled;
   renderAI();
-  if (aiEnabled) {
-    $("ai-panel").classList.remove("ai-activated");
-    void $("ai-panel").offsetWidth;
-    $("ai-panel").classList.add("ai-activated");
-  }
 }
 
 $("ai-toggle").addEventListener("click", toggleAI);
@@ -694,10 +676,6 @@ $("ai-panel").addEventListener("animationend", event => {
 async function generate() {
   if (busy || loadingDay) return;
 
-  if (!isWorkday(day)) {
-    $("error").textContent = "Berichte können nur Montag bis Freitag erstellt werden.";
-    return;
-  }
   const notes = $("notes").value.trim();
 
   if (
@@ -722,10 +700,8 @@ async function generate() {
   updateControls();
 
   try {
-    const params = new URLSearchParams({
-      target_date: requestDay,
-      use_ai: String(aiEnabled && !withoutAI(notes)),
-    });
+    const params = new URLSearchParams({target_date: requestDay,
+      use_ai: String(aiEnabled && !withoutAI(notes))});
     const response = await fetch(
       api(`/reports/?${params}`),
       {
@@ -811,6 +787,29 @@ $("selected-date").addEventListener("change", event => {
 });
 
 $("today").onclick = () => selectDay(dayKey());
+
+async function navigateDays(offset) {
+  if (busy) return;
+  if (![-7, -1, 1, 7].includes(offset)) return;
+  const calendarDate = $("selected-date").value;
+  const current = validDay(calendarDate) ? calendarDate : day;
+  if (!validDay(current)) {
+    $("error").textContent = "Bitte ein gültiges Datum auswählen.";
+    return;
+  }
+  await selectDay(shiftDay(current, offset));
+}
+
+document.addEventListener("click", event => {
+  const button = event.target instanceof Element
+    ? event.target.closest("button[data-shift-days]") : null;
+  if (!button) return;
+  event.preventDefault();
+  navigateDays(Number(button.dataset.shiftDays)).catch(error => {
+    $("error").textContent = errorText(error);
+    console.error("Datumsnavigation fehlgeschlagen:", error);
+  });
+});
 $("generate").onclick = generate;
 
 $("stop").onclick = () => {
@@ -863,9 +862,7 @@ window.addEventListener("beforeunload", event => {
   }
 });
 
-renderAI();
-selectDay(dayKey());
-loadWeeks({ reset: true });
+
 
 let exportController = null;
 function exportMode() {
@@ -992,3 +989,6 @@ $("export-cancel").onclick = () => exportController?.abort();
 $("export-start").value = monday(dayKey());
 $("export-end").value = dayKey();
 updateExportPreview();
+renderAI();
+selectDay(dayKey());
+loadWeeks({ reset: true });
