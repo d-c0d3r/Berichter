@@ -1,5 +1,7 @@
 from datetime import date
 from typing import Annotated
+import logging
+
 
 import ollama
 from fastapi import (
@@ -18,6 +20,9 @@ from app import crud, schemas
 from app.settings import settings
 from app.database import GetAsyncDBSessionDependency
 
+
+
+logger = logging.getLogger(__name__)
 
 reports_router = APIRouter(
     prefix="/reports",
@@ -75,6 +80,7 @@ async def generate_report(
                 yield notes
 
         except Exception as ex:
+            logging.error(f"Failed generating report: {ex}")
             yield notes
 
         # Build content from generated parts
