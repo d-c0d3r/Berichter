@@ -6,8 +6,7 @@ from sqlalchemy import desc, select, update, func
 from sqlalchemy.orm import selectinload
 
 from app.settings import settings
-from app.helpers import get_week_bounds
-from app import models
+from app import models, helpers
 
 
 async def create_new_report_file(
@@ -15,7 +14,7 @@ async def create_new_report_file(
 ):
 
     # Calculate friday's date
-    week_start, week_end = get_week_bounds(target_date)
+    week_start, week_end = helpers.get_week_bounds(target_date)
 
     # Create new report file object
     new_report_file = models.ReportFile(
@@ -64,7 +63,7 @@ async def get_report_file_by_date(
 ):
 
     # Calculating monday's date
-    week_start, _ = get_week_bounds(target_date)
+    week_start, _ = helpers.get_week_bounds(target_date)
 
     # Search for report file with the calculated date of week start
     stmt = select(models.ReportFile).filter(models.ReportFile.week_start == week_start)
@@ -139,3 +138,21 @@ async def get_report_by_date(db: AsyncSession, report_date: date):
 
     # Return found report object
     return target_report
+
+
+async def get_reports(db: AsyncSession, limit: int | None = 100):
+
+    stmt = (
+        select(models.Report)
+        .order_by(
+            desc(models.Report.report_date)
+        )
+    )
+
+    if limit is not None:
+        stmt = stmt.limit(limit=limit)
+
+    result = await db.execute(stmt)
+    reports = result.scalars()
+
+    return reports
