@@ -6,8 +6,8 @@
 
   <title>Berichter</title>
 
-  <link rel="stylesheet" href="styles.css?v=nav-final-3">
-  <script src="app.js?v=nav-final-3" defer></script>
+  <link rel="stylesheet" href="styles.css?v=missing-reports-1">
+  <script src="app.js?v=missing-reports-1" defer></script>
 </head>
 
 <body>
@@ -16,6 +16,20 @@
     berichter<span>.</span>
   </div>
 
+
+  <section class="card missing-panel" aria-labelledby="missing-title">
+    <div class="row missing-heading">
+      <div>
+        <p class="missing-eyebrow">DEIN BERICHTSÜBERBLICK</p>
+        <h2 id="missing-title">Fehlende Berichte <span id="missing-count" class="missing-count">–</span></h2>
+      </div>
+      <button id="missing-refresh" type="button">Aktualisieren</button>
+    </div>
+    <p class="muted missing-description">Datum auswählen, Notizen eingeben und den fehlenden Bericht erstellen.</p>
+    <p id="missing-status" class="muted" role="status" aria-live="polite">Fehlende Berichte werden geladen …</p>
+    <p id="missing-error" class="error" role="alert"></p>
+    <div id="missing-months" class="missing-months" aria-label="Fehlende Berichtsdaten"></div>
+  </section>
 
   <p id="greeting" class="greeting"></p>
 

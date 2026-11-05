@@ -30,6 +30,12 @@ let historyController = null;
 let weekRequestVersion = 0;
 const latestWeekRequests = new Map();
 
+let missingDates = [];
+let missingLoading = false;
+let missingLoaded = false;
+let missingController = null;
+let missingVersion = 0;
+
 let lastToday = dayKey();
 
 function dayKey(value = new Date()) {
@@ -237,6 +243,100 @@ function updateControls() {
   });
 }
 
+function renderMissing() {
+  const container = $("missing-months");
+  const fragment = document.createDocumentFragment();
+  const groups = new Map();
+  for (const key of missingDates) {
+    const month = key.slice(0, 7);
+    if (!groups.has(month)) groups.set(month, []);
+    groups.get(month).push(key);
+  }
+  for (const [month, dates] of groups) {
+    const section = document.createElement("section");
+    section.className = "missing-month";
+    const heading = document.createElement("h3");
+    heading.textContent = new Date(`${month}-01T12:00:00`).toLocaleDateString("de-DE", {
+      month: "long", year: "numeric",
+    }) + ` · ${dates.length}`;
+    const grid = document.createElement("div");
+    grid.className = "missing-date-grid";
+    for (const key of dates) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "missing-date";
+      button.dataset.openDay = key;
+      button.disabled = busy;
+      button.setAttribute("aria-label", `Bericht schreiben: ${dateLabel(key)}`);
+      button.setAttribute("aria-pressed", String(key === day));
+      const weekday = document.createElement("span");
+      weekday.className = "missing-weekday";
+      weekday.textContent = new Date(`${key}T12:00:00`).toLocaleDateString("de-DE", { weekday: "short" });
+      const label = document.createElement("span");
+      label.textContent = shortDate(key);
+      button.append(weekday, label);
+      button.onclick = async () => {
+        if (busy) return;
+        await selectDay(key);
+        if (day !== key || busy) return;
+        $("notes").focus({ preventScroll: true });
+        $("day-title").scrollIntoView({
+          behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+          block: "start",
+        });
+      };
+      grid.append(button);
+    }
+    section.append(heading, grid);
+    fragment.append(section);
+  }
+  container.replaceChildren(fragment);
+  $("missing-count").textContent = missingLoaded ? String(missingDates.length) : "–";
+  $("missing-refresh").disabled = missingLoading;
+  $("missing-refresh").textContent = missingLoading ? "Wird geladen …" : "Aktualisieren";
+  container.setAttribute("aria-busy", String(missingLoading));
+}
+
+async function loadMissing() {
+  missingController?.abort();
+  const controller = new AbortController();
+  missingController = controller;
+  const version = ++missingVersion;
+  missingLoading = true;
+  $("missing-error").textContent = "";
+  $("missing-status").textContent = "Fehlende Berichte werden geladen …";
+  renderMissing();
+  try {
+    const response = await fetch(api("/reports/missing"), {
+      signal: controller.signal, cache: "no-store",
+    });
+    if (!response.ok) throw await httpError(response);
+    const body = await response.json();
+    if (!body || !Array.isArray(body.missing_dates) || !body.missing_dates.every(validDay)) {
+      throw new Error("Ungültige Antwort: missing_dates muss eine Liste gültiger Datumswerte enthalten.");
+    }
+    if (version !== missingVersion) return;
+    // Der bisherige API-count zählt erwartete Tage, nicht fehlende Berichte.
+    missingDates = [...new Set(body.missing_dates)].sort();
+    missingLoaded = true;
+    $("missing-status").textContent = missingDates.length
+      ? `${missingDates.length} ${missingDates.length === 1 ? "Bericht fehlt" : "Berichte fehlen"}. Klicke auf ein Datum, um loszulegen.`
+      : "Alles vollständig – keine fehlenden Berichte.";
+  } catch (error) {
+    if (version !== missingVersion || error.name === "AbortError") return;
+    $("missing-error").textContent = errorText(error);
+    $("missing-status").textContent = missingLoaded
+      ? "Aktualisierung fehlgeschlagen. Die angezeigte Liste ist möglicherweise veraltet."
+      : "Fehlende Berichte konnten nicht geladen werden. Bitte erneut aktualisieren.";
+  } finally {
+    if (version === missingVersion) {
+      missingLoading = false;
+      missingController = null;
+      renderMissing();
+    }
+  }
+}
+
 function updateHistoryControls() {
   $("refresh").disabled = weeksLoading;
 
@@ -252,6 +352,9 @@ function updateHistoryControls() {
 }
 
 function updateDateLabels() {
+  document.querySelectorAll(".missing-date").forEach(button => {
+    button.setAttribute("aria-pressed", String(button.dataset.openDay === day));
+  });
   $("greeting").textContent = dateLabel(day);
   $("selected-date").value = day;
 
@@ -773,7 +876,7 @@ async function generate() {
     generationController = null;
 
     updateControls();
-    await ensureWeek(requestDay, true, true);
+    await Promise.all([ensureWeek(requestDay, true, true), loadMissing()]);
   }
 }
 
@@ -835,6 +938,8 @@ $("copy").onclick = async () => {
   }
 };
 
+$("missing-refresh").onclick = () => loadMissing();
+
 $("refresh").onclick = () => {
   loadWeeks({ reset: true });
 };
@@ -846,6 +951,7 @@ $("older").onclick = () => {
 document.addEventListener("visibilitychange", () => {
   if (!document.hidden && lastToday !== dayKey()) {
     lastToday = dayKey();
+    loadMissing();
     updateDateLabels();
     updateControls();
   }
@@ -992,3 +1098,5 @@ updateExportPreview();
 renderAI();
 selectDay(dayKey());
 loadWeeks({ reset: true });
+
+loadMissing();
