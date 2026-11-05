@@ -1,4 +1,5 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from datetime import date
 import ollama
 
 
@@ -11,6 +12,7 @@ class BerichterSettings(BaseSettings):
     TEMPLATE_REPORT_FILENAME: str
     BERICHTSHEFT_BASE_FILENAME: str
     OLLAMA_CONNECTION: ollama.AsyncClient | None = None
+    AUSBILDUNG_START_DATE: date
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
