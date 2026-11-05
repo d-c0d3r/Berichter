@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, timedelta
 from typing import Annotated
 import logging
 
@@ -15,7 +15,7 @@ from fastapi import (
 )
 from fastapi.responses import StreamingResponse
 
-from app import crud, schemas
+from app import crud, schemas, helpers
 
 from app.settings import settings
 from app.database import GetAsyncDBSessionDependency
@@ -117,6 +117,31 @@ async def generate_report(
         status_code=status.HTTP_206_PARTIAL_CONTENT,
         media_type="text/plain",
     )
+
+
+@reports_router.get("/missing")
+async def get_missing_reports(db: GetAsyncDBSessionDependency):
+
+    all_reports_dates = set()
+    start_date, _ = helpers.get_week_bounds(settings.AUSBILDUNG_START_DATE)
+    end_date = date.today()
+    current_date = start_date
+
+    while current_date <= end_date:
+        if current_date.weekday() in range(0, 5):
+            all_reports_dates.add(current_date)
+        current_date += timedelta(days=1)
+
+    existing_reports = await crud.get_reports(db=db, limit=None)
+    existing_report_dates = set(report.report_date for report in existing_reports)
+
+    missing_report_dates = all_reports_dates - existing_report_dates
+    count = len(missing_report_dates)
+
+    return {
+        "count": count,
+        "missing_dates": missing_report_dates
+    }
 
 
 @reports_router.get("/{report_date}", response_model=schemas.ReportResponse)
