@@ -123,7 +123,7 @@ async def generate_report(
 async def get_missing_reports(db: GetAsyncDBSessionDependency):
 
     all_reports_dates = set()
-    start_date, _ = helpers.get_week_bounds(settings.AUSBILDUNG_START_DATE)
+    start_date = settings.AUSBILDUNG_START_DATE
     end_date = date.today()
     current_date = start_date
 
