@@ -1,10 +1,14 @@
-"use strict";
+import { dayKey, validDay, shiftDay, monday, dateLabel, shortDate } from "./dates.js";
+import { api, httpError, errorText } from "./http.js";
 
-const API_BASE = "http://localhost:8000/api/v1";
 const MAX_NOTES = 400;
 const WEEKS_LIMIT = 10;
 
-const $ = id => document.getElementById(id);
+const elements = new Map();
+const $ = id => {
+  if (!elements.has(id)) elements.set(id, document.getElementById(id));
+  return elements.get(id);
+};
 
 const drafts = new Map();
 const weeks = new Map();
@@ -37,87 +41,6 @@ let missingController = null;
 let missingVersion = 0;
 
 let lastToday = dayKey();
-
-function dayKey(value = new Date()) {
-  return [
-    value.getFullYear(),
-    String(value.getMonth() + 1).padStart(2, "0"),
-    String(value.getDate()).padStart(2, "0"),
-  ].join("-");
-}
-
-function validDay(value) {
-  if (
-    typeof value !== "string" ||
-    !/^\d{4}-\d{2}-\d{2}$/.test(value)
-  ) {
-    return false;
-  }
-
-  const parsed = new Date(`${value}T12:00:00`);
-
-  return (
-    !Number.isNaN(parsed.getTime()) &&
-    dayKey(parsed) === value
-  );
-}
-
-function shiftDay(key, days) {
-  const value = new Date(`${key}T12:00:00`);
-  value.setDate(value.getDate() + days);
-  return dayKey(value);
-}
-
-function monday(key) {
-  const value = new Date(`${key}T12:00:00`);
-  return shiftDay(key, -((value.getDay() + 6) % 7));
-}
-
-function dateLabel(key) {
-  return new Date(`${key}T12:00:00`).toLocaleDateString(
-    "de-DE",
-    {
-      weekday: "long",
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    }
-  );
-}
-
-function shortDate(key) {
-  return new Date(`${key}T12:00:00`)
-    .toLocaleDateString("de-DE");
-}
-
-function api(path) {
-  return API_BASE.replace(/\/$/, "") + path;
-}
-
-async function httpError(response) {
-  const body = await response.text();
-  let detail;
-
-  try {
-    const value = JSON.parse(body);
-
-    detail = typeof value.detail === "string"
-      ? value.detail
-      : JSON.stringify(value.detail || value);
-  } catch {
-    detail = /<(?:!doctype|html)/i.test(body)
-      ? "HTML statt API-Antwort erhalten. Nginx-Konfiguration prüfen."
-      : body.slice(0, 500);
-  }
-
-  return new Error(`HTTP ${response.status}: ${detail}`);
-}
-
-function errorText(error) {
-  return error instanceof TypeError
-    ? "Backend nicht erreichbar. Verbindung und API-Konfiguration prüfen."
-    : error.message;
-}
 
 function validateReport(value) {
   if (
@@ -223,14 +146,16 @@ function updateControls() {
 
   $("length").textContent = `${length} / ${MAX_NOTES}`;
   $("length").classList.toggle("danger", length > MAX_NOTES);
+  $("editor-limit-warning").textContent = length > MAX_NOTES ? "Mehr als 400 Zeichen: Speichern ist mit dem bisherigen Eingabelimit nicht möglich. Der Text bleibt vollständig erhalten." : "";
 
   const invalid =
     !$("notes").value.trim() ||
     length > MAX_NOTES;
 
   $("generate").disabled = busy || loadingDay || invalid;
+  $("generate").textContent = busy ? "Wird verarbeitet …" : aiEnabled && !withoutAI($("notes").value) ? "Bericht mit KI erstellen" : "Bericht speichern";
+  $("length").title = length > MAX_NOTES ? "Das bestehende API-Limit beträgt 400 Zeichen. Der Text wird nicht gekürzt." : "Maximal 400 Zeichen";
   $("ai-toggle").disabled = busy;
-  document.body.classList.toggle("is-generating", busy);
 
   $("notes").disabled = busy;
   $("selected-date").disabled = busy;
@@ -275,16 +200,6 @@ function renderMissing() {
       const label = document.createElement("span");
       label.textContent = shortDate(key);
       button.append(weekday, label);
-      button.onclick = async () => {
-        if (busy) return;
-        await selectDay(key);
-        if (day !== key || busy) return;
-        $("notes").focus({ preventScroll: true });
-        $("day-title").scrollIntoView({
-          behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
-          block: "start",
-        });
-      };
       grid.append(button);
     }
     section.append(heading, grid);
@@ -293,7 +208,7 @@ function renderMissing() {
   container.replaceChildren(fragment);
   $("missing-count").textContent = missingLoaded ? String(missingDates.length) : "–";
   $("missing-refresh").disabled = missingLoading;
-  $("missing-refresh").textContent = missingLoading ? "Wird geladen …" : "Aktualisieren";
+  $("missing-refresh-label").textContent = missingLoading ? "Wird geladen …" : "Aktualisieren";
   container.setAttribute("aria-busy", String(missingLoading));
 }
 
@@ -375,7 +290,7 @@ async function selectDay(next) {
   }
 
   if (day) {
-    drafts.set(day, $("notes").value);
+    if (drafts.has(day)) drafts.set(day, $("notes").value);
   }
 
   day = next;
@@ -386,14 +301,13 @@ async function selectDay(next) {
 
   loadingDay = true;
 
-  $("notes").value = drafts.get(day) || "";
+  $("notes").value = drafts.has(day) ? drafts.get(day) : "";
   renderAI();
   $("error").textContent = "";
   $("status").textContent = "Bericht wird geladen …";
 
   showReport("", "Bericht wird aus der Datenbank geladen …");
   updateDateLabels();
-  updateControls();
 
   try {
     const report = await fetchReport(
@@ -404,6 +318,10 @@ async function selectDay(next) {
     if (version !== dayVersion) return;
 
     showReport(report?.content || "");
+    if (!drafts.has(next)) {
+      $("notes").value = report?.content || "";
+      renderAI();
+    }
 
     $("status").textContent = report
       ? "Aus Datenbank geladen"
@@ -510,17 +428,6 @@ function renderWeeks() {
         open.textContent = "Öffnen";
         open.dataset.openDay = report.report_date;
         open.disabled = busy;
-
-        open.onclick = () => {
-          if (busy) return;
-
-          selectDay(report.report_date);
-
-          $("day-title").scrollIntoView({
-            behavior: "smooth",
-            block: "start",
-          });
-        };
 
         const text = document.createElement("div");
         text.className = "report";
@@ -760,9 +667,7 @@ function renderAI() {
   const bypass = withoutAI($("notes").value);
   $("ai-panel").dataset.state = aiEnabled && !bypass ? "on" : "off";
   $("ai-toggle").setAttribute("aria-checked", String(aiEnabled));
-  $("ai-status").textContent = bypass ? "Urlaub / Krankmeldung · ohne KI"
-    : aiEnabled ? "Ein · KI für den nächsten Bericht verwenden" : "Aus · Notizen ohne KI speichern";
-  document.body.classList.toggle("ai-on", aiEnabled && !bypass);
+  $("ai-status").textContent = bypass ? "Urlaub / Krankmeldung · ohne KI" : aiEnabled ? "Notizen automatisch ausformulieren" : "Text unverändert speichern";
   updateControls();
 }
 function toggleAI() {
@@ -772,9 +677,6 @@ function toggleAI() {
 }
 
 $("ai-toggle").addEventListener("click", toggleAI);
-$("ai-panel").addEventListener("animationend", event => {
-  if (event.animationName === "ai-activation") $("ai-panel").classList.remove("ai-activated");
-});
 
 async function generate() {
   if (busy || loadingDay) return;
@@ -855,6 +757,8 @@ async function generate() {
     }
 
     showReport(saved.content);
+    drafts.delete(requestDay);
+    $("notes").value = saved.content;
     $("status").textContent = "In Datenbank gespeichert";
   } catch (error) {
     const aborted = error.name === "AbortError";
@@ -903,15 +807,27 @@ async function navigateDays(offset) {
   await selectDay(shiftDay(current, offset));
 }
 
+async function openDay(key, focusEditor = false) {
+  if (busy) return;
+  showView("tagesbericht");
+  await selectDay(key);
+  if (day !== key || busy) return;
+  $("day-title").scrollIntoView({
+    behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+    block: "start",
+  });
+  if (focusEditor) $("notes").focus({ preventScroll: true });
+}
+
 document.addEventListener("click", event => {
   const button = event.target instanceof Element
-    ? event.target.closest("button[data-shift-days]") : null;
-  if (!button) return;
+    ? event.target.closest("button[data-shift-days], button[data-open-day]") : null;
+  if (!button || button.disabled) return;
   event.preventDefault();
-  navigateDays(Number(button.dataset.shiftDays)).catch(error => {
-    $("error").textContent = errorText(error);
-    console.error("Datumsnavigation fehlgeschlagen:", error);
-  });
+  const task = button.hasAttribute("data-open-day")
+    ? openDay(button.dataset.openDay, button.classList.contains("missing-date"))
+    : navigateDays(Number(button.dataset.shiftDays));
+  task.catch(error => { $("error").textContent = errorText(error); });
 });
 $("generate").onclick = generate;
 
@@ -919,24 +835,41 @@ $("stop").onclick = () => {
   generationController?.abort();
 };
 
+function legacyCopy(text) {
+  const field = document.createElement("textarea");
+  field.value = text;
+  field.setAttribute("readonly", "");
+  field.style.cssText = "position:fixed;top:0;left:0;width:1px;height:1px;opacity:0;font-size:16px";
+  document.body.append(field);
+  field.focus({preventScroll:true}); field.select(); field.setSelectionRange(0, field.value.length);
+  let ok = false;
+  try { ok = document.execCommand("copy"); } catch {}
+  field.remove(); $("copy").focus({preventScroll:true});
+  return ok;
+}
+function manualCopy(text) {
+  $("copy-text").value = text;
+  $("copy-dialog").showModal();
+  $("copy-text").focus(); $("copy-text").select();
+}
+let copyResetTimer;
+const copyButtonMarkup = $("copy").innerHTML;
 $("copy").onclick = async () => {
-  if ($("report").classList.contains("empty")) return;
-
-  try {
-    await navigator.clipboard.writeText(
-      $("report").textContent
-    );
-
-    $("copy").textContent = "Kopiert ✓";
-
-    setTimeout(() => {
-      $("copy").textContent = "Kopieren";
-    }, 1500);
-  } catch {
-    $("error").textContent =
-      "Bitte markiere den Text und kopiere ihn manuell.";
-  }
+ if ($("report").classList.contains("empty")) return;
+ const text = $("report").textContent;
+ let ok = false;
+ if (window.isSecureContext && navigator.clipboard?.writeText) {
+   try { await navigator.clipboard.writeText(text); ok = true; } catch {}
+ }
+ if (!ok) ok = legacyCopy(text);
+ if (!ok) { manualCopy(text); return; }
+ clearTimeout(copyResetTimer);
+ $("copy").textContent = "Kopiert";
+ copyResetTimer = setTimeout(() => { $("copy").innerHTML = copyButtonMarkup; }, 1500);
 };
+$("copy-select").onclick = () => { $("copy-text").focus(); $("copy-text").select(); };
+$("copy-close").onclick = () => $("copy-dialog").close();
+$("copy-dialog").addEventListener("close", () => $("copy").focus({preventScroll:true}));
 
 $("missing-refresh").onclick = () => loadMissing();
 
@@ -958,9 +891,7 @@ document.addEventListener("visibilitychange", () => {
 });
 
 window.addEventListener("beforeunload", event => {
-  const hasDrafts = [...drafts.values()].some(
-    value => value.trim()
-  );
+  const hasDrafts = drafts.size > 0;
 
   if (busy || hasDrafts) {
     event.preventDefault();
@@ -1083,9 +1014,12 @@ async function exportArchive(event) {
   }
 }
 $("export-toggle").onclick = () => {
-  $("export-panel").hidden = !$("export-panel").hidden;
-  $("export-toggle").setAttribute("aria-expanded", String(!$("export-panel").hidden));
+ $("export-dialog").showModal(); $("export-toggle").setAttribute("aria-expanded", "true");
 };
+$("export-close").onclick = () => $("export-dialog").close();
+$("export-dialog").addEventListener("close", () => {
+ $("export-toggle").setAttribute("aria-expanded", "false"); $("export-toggle").focus();
+});
 $("export-form").addEventListener("submit", exportArchive);
 $("export-form").addEventListener("change", () => {
   $("export-error").textContent = "";
@@ -1094,6 +1028,29 @@ $("export-form").addEventListener("change", () => {
 $("export-cancel").onclick = () => exportController?.abort();
 $("export-start").value = monday(dayKey());
 $("export-end").value = dayKey();
+
+
+const viewInfo = {
+ "tagesbericht": ["Tagesbericht", "Tätigkeiten festhalten und bestehende Berichte bearbeiten."],
+ "offene-berichte": ["Offene Berichte", "Wähle einen fehlenden Tag, um einen Bericht nachzutragen."],
+ "wochenarchiv": ["Wochenarchiv", "Gespeicherte Berichte lesen und vollständige Wochen exportieren."]
+};
+function showView(key, focus = false) {
+ if (!viewInfo[key]) key = "tagesbericht";
+ document.querySelectorAll("[data-page]").forEach(p => p.hidden = p.dataset.page !== key);
+ document.querySelectorAll("[data-view]").forEach(a => {
+  const active = a.dataset.view === key; a.classList.toggle("active", active);
+  if (active) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
+ });
+ $("page-title").textContent = viewInfo[key][0]; $("page-description").textContent = viewInfo[key][1];
+ if (location.hash !== "#" + key) history.replaceState(null, "", "#" + key);
+ if (focus) { $("page-title").focus({preventScroll:true}); window.scrollTo(0,0); }
+}
+document.querySelectorAll("[data-view], .brand").forEach(a => a.addEventListener("click", e => {e.preventDefault();showView(a.hash.slice(1), e.detail === 0); window.scrollTo(0, 0);}));
+window.addEventListener("hashchange", () => showView(location.hash.slice(1)));
+showView(location.hash.slice(1));
+
+// Bootstrap after all state and handlers have been initialized.
 updateExportPreview();
 renderAI();
 selectDay(dayKey());
