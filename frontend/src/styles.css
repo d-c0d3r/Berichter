@@ -1043,3 +1043,29 @@ button, .nav-link {
     scroll-behavior: auto !important;
   }
 }
+
+/* Replace only the small brand mark; retain the wordmark. */
+.sidebar .brand-mark {
+  display: block;
+  width: 34px;
+  height: 36px;
+  flex: 0 0 auto;
+  object-fit: contain;
+  background: transparent;
+}
+
+@media (max-width: 1150px) {
+  .sidebar .brand {
+    justify-content: center;
+  }
+  .sidebar .brand-caption {
+    text-align: center;
+  }
+}
+
+@media (max-width: 720px) {
+  .sidebar .brand-mark {
+    width: 28px;
+    height: 30px;
+  }
+}

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import Icon from './Icon.vue';
+import brandLogo from '../assets/brand/berichter-light.svg';
 import type { View } from '../types';
 defineProps<{
   current: View;
@@ -33,7 +34,9 @@ function activate(event: MouseEvent, key: View) {
 <template>
 <aside class="sidebar">
 <a class="brand" href="#tagesbericht" @click="activate($event,'tagesbericht')">
-<span class="brand-mark">b</span>berichter.</a>
+<img class="brand-mark" :src="brandLogo" alt=""/>
+<span>berichter.</span>
+</a>
 <p class="brand-caption">Dein digitales Berichtsheft</p>
 <p class="nav-caption">ARBEITSBEREICH</p>
 <nav aria-label="Hauptnavigation">
