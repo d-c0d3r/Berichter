@@ -1,3 +1,5 @@
+/* Berichter — components and responsive layouts. Full replacement. */
+
 :root {
   color-scheme: light;
   --bg: #f3f6fa;
@@ -162,7 +164,6 @@ main {
 
 .page-header h1 {
   width: fit-content;
-  width: fit-content;
   font-size: 32px;
   line-height: 1.25;
   letter-spacing: -1px;
@@ -195,11 +196,6 @@ main {
   padding: 24px 28px;
   border-bottom: 1px solid var(--line);
   flex-wrap: wrap;
-}
-
-.heading h2 {
-  font-size: 20px;
-  letter-spacing: -.3px;
 }
 
 .greeting {
@@ -667,6 +663,55 @@ button, .nav-link {
   min-width: 0;
 }
 
+#page-title:focus-visible {
+  outline: 2px solid #8faaf0;
+  outline-offset: 4px;
+  border-radius: 3px;
+}
+
+.heading h2 {
+  font-size: 20px;
+  letter-spacing: -.3px;
+}
+
+.skip-link {
+  position: fixed;
+  top: -100px;
+  left: 12px;
+  z-index: 200;
+  background: white;
+  padding: 12px;
+}
+
+.skip-link:focus {
+  top: 12px;
+}
+
+#content:focus {
+  outline: none;
+}
+
+.export-panel > h2 {
+  margin-bottom: 24px;
+  padding-right: 36px;
+  font-size: 21px;
+}
+
+.export-panel form fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+
+.export-panel textarea {
+  margin: 18px 0;
+}
+
+.archive > .muted, .missing-panel > .muted {
+  margin: 16px 0;
+}
+
 @media (min-width: 721px) {
   .sidebar {
     position: fixed;
@@ -687,8 +732,8 @@ button, .nav-link {
     margin-left: 215px;
     padding: 32px 24px;
   }
-
 }
+
 @media (min-width: 721px) and (max-width: 1150px) {
   .workspace {
     grid-template-columns: minmax(0, 1fr);
@@ -705,8 +750,8 @@ button, .nav-link {
   .heading, .compose-pane, .preview-pane {
     padding: 24px;
   }
-
 }
+
 @media (min-width: 1151px) {
   .sidebar {
     width: 240px;
@@ -725,8 +770,72 @@ button, .nav-link {
   .preview-pane {
     border-left: 1px solid var(--line);
   }
-
 }
+
+@media (max-width: 1150px) {
+  .date-controls {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .date-navigation {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+    width: 100%;
+    min-width: 0;
+    align-items: stretch;
+  }
+
+  .date-navigation input[type="date"] {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    -webkit-appearance: none;
+    appearance: none;
+    display: block;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    height: 44px;
+    min-height: 44px;
+    margin: 0;
+    padding: 0 12px;
+    border: 1px solid #d1dae7;
+    border-radius: 8px;
+    background: var(--card);
+    color: var(--text);
+    font-size: 16px;
+    line-height: 1.25;
+  }
+
+  .date-navigation input[type="date"]::-webkit-datetime-edit,
+    .date-navigation input[type="date"]::-webkit-datetime-edit-fields-wrapper {
+    padding: 0;
+  }
+
+  .date-navigation input[type="date"]::-webkit-date-and-time-value {
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    text-align: center;
+  }
+
+  .date-navigation button {
+    width: 100%;
+    min-width: 0;
+    min-height: 44px;
+    margin: 0;
+    padding: 8px 4px;
+  }
+
+  .date-navigation #today {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    width: 100%;
+    margin: 0;
+  }
+}
+
 @media (max-width: 720px) {
   :root {
     --bottom-nav-height: 78px;
@@ -822,7 +931,6 @@ button, .nav-link {
   }
 
   .page-header h1 {
-  width: fit-content;
     font-size: 28px;
   }
 
@@ -832,31 +940,6 @@ button, .nav-link {
 
   .heading,.compose-pane,.preview-pane {
     padding: 20px;
-  }
-
-  .date-controls {
-    width: 100%;
-  }
-
-  .date-navigation {
-    display: grid;
-    grid-template-columns: 40px 40px minmax(118px,1fr) 40px 40px;
-    gap: 5px;
-  }
-
-  .date-navigation #today {
-    grid-column: 1/-1;
-    justify-self: end;
-    margin-top: 3px;
-  }
-
-  .date-navigation input {
-    width: 100%;
-    padding: 8px 3px;
-  }
-
-  .date-navigation button {
-    padding: 8px 4px;
   }
 
   .preview-pane>.row {
@@ -937,15 +1020,10 @@ button, .nav-link {
   .export-dates {
     grid-template-columns: 1fr;
   }
-
 }
-@media (max-width: 370px) {
-  .date-navigation {
-    grid-template-columns: 34px 34px minmax(100px,1fr) 34px 34px;
-  }
 
+@media (max-width: 370px) {
   .date-navigation button {
-    min-width: 34px;
     font-size: 12px;
   }
 
@@ -956,29 +1034,12 @@ button, .nav-link {
   .ai-orb {
     display: none;
   }
-
 }
+
 @media (prefers-reduced-motion: reduce) {
   *,*::before,*::after {
     animation: none !important;
     transition: none !important;
     scroll-behavior: auto !important;
   }
-
 }
-/* A heading receives focus only during keyboard navigation. */
-#page-title:focus-visible {
-  outline: 2px solid #8faaf0;
-  outline-offset: 4px;
-  border-radius: 3px;
-}
-
-
-.skip-link { position: fixed; top: -100px; left: 12px; z-index: 200; background: white; padding: 12px; }
-.skip-link:focus { top: 12px; }
-
-#content:focus { outline: none; }
-.export-panel > h2 { margin-bottom: 24px; padding-right: 36px; font-size: 21px; }
-.export-panel form fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
-.export-panel textarea { margin: 18px 0; }
-.archive > .muted, .missing-panel > .muted { margin: 16px 0; }
