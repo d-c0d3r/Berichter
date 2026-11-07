@@ -675,96 +675,96 @@ button, .nav-link {
     padding: 28px 16px;
     overflow-y: auto;
   }
-  
+
   .nav-link {
     min-height: 48px;
     margin: 6px 0;
     padding: 12px;
     font-size: 15px;
   }
-  
+
   main {
     margin-left: 215px;
     padding: 32px 24px;
   }
-  
+
 }
 @media (min-width: 721px) and (max-width: 1150px) {
   .workspace {
     grid-template-columns: minmax(0, 1fr);
   }
-  
+
   .preview-pane {
     border-top: 1px solid var(--line);
   }
-  
+
   .report.empty {
     min-height: 130px;
   }
-  
+
   .heading, .compose-pane, .preview-pane {
     padding: 24px;
   }
-  
+
 }
 @media (min-width: 1151px) {
   .sidebar {
     width: 240px;
     padding: 32px 20px;
   }
-  
+
   main {
     margin-left: 240px;
     padding: 42px clamp(24px, 4vw, 64px);
   }
-  
+
   .workspace {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-  
+
   .preview-pane {
     border-left: 1px solid var(--line);
   }
-  
+
 }
 @media (max-width: 720px) {
   :root {
     --bottom-nav-height: 78px;
   }
-  
+
   html {
     scroll-padding-bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 0px) + 16px);
   }
-  
+
   body {
     padding-bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 0px));
   }
-  
+
   .sidebar {
     position: static;
     width: 100%;
     padding: calc(18px + env(safe-area-inset-top, 0px)) 16px 18px;
   }
-  
+
   .brand {
     font-size: 24px;
   }
-  
+
   .brand-mark {
     width: 28px;
     height: 30px;
     font-size: 26px;
   }
-  
+
   .brand-caption {
     margin-top: 8px;
     font-size: 12px;
   }
-  
+
   .nav-caption {
     display: none;
   }
-  
+
   .sidebar nav {
     position: fixed;
     z-index: 100;
@@ -778,7 +778,7 @@ button, .nav-link {
     background: #19283c;
     border-top: 1px solid #394b63;
   }
-  
+
   .nav-link {
     flex-direction: column;
     align-items: center;
@@ -794,169 +794,169 @@ button, .nav-link {
     text-align: center;
     white-space: normal;
   }
-  
+
   .nav-link svg {
     width: 22px;
     height: 22px;
   }
-  
+
   main {
     margin-left: 0;
     padding: 27px max(16px, env(safe-area-inset-right, 0px)) 27px max(16px, env(safe-area-inset-left, 0px));
   }
-  
+
   .workspace {
     grid-template-columns: minmax(0, 1fr);
   }
-  
+
   .preview-pane {
     border-top: 1px solid var(--line);
   }
-  
+
   .report.empty {
     min-height: 130px;
   }
-  
+
   .page-header {
     margin-bottom: 23px;
   }
-  
+
   .page-header h1 {
   width: fit-content;
     font-size: 28px;
   }
-  
+
   .page-header p {
     font-size: 14px;
   }
-  
+
   .heading,.compose-pane,.preview-pane {
     padding: 20px;
   }
-  
+
   .date-controls {
     width: 100%;
   }
-  
+
   .date-navigation {
     display: grid;
     grid-template-columns: 40px 40px minmax(118px,1fr) 40px 40px;
     gap: 5px;
   }
-  
+
   .date-navigation #today {
     grid-column: 1/-1;
     justify-self: end;
     margin-top: 3px;
   }
-  
+
   .date-navigation input {
     width: 100%;
     padding: 8px 3px;
   }
-  
+
   .date-navigation button {
     padding: 8px 4px;
   }
-  
+
   .preview-pane>.row {
     flex-wrap: wrap;
   }
-  
+
   .ai-description {
     gap: 9px;
   }
-  
+
   .ai-panel {
     padding: 12px;
     gap: 8px;
   }
-  
+
   .ai-orb {
     width: 29px;
     height: 31px;
   }
-  
+
   #ai-status,.hint {
     font-size: 11px;
   }
-  
+
   textarea {
     min-height: 220px;
   }
-  
+
   .missing-panel {
     padding: 20px;
   }
-  
+
   .missing-date-grid {
     grid-template-columns: repeat(2,minmax(0,1fr));
     gap: 8px;
   }
-  
+
   .missing-date {
     font-size: 13px;
     padding: 10px 6px;
     gap: 7px;
   }
-  
+
   .section-heading .actions {
     width: 100%;
   }
-  
+
   .section-heading .actions button {
     flex: 1;
   }
-  
+
   .week summary {
     padding: 18px 16px;
     font-size: 14px;
   }
-  
+
   .week-meta {
     font-size: 12px;
   }
-  
+
   .week-content {
     padding: 0 16px 20px;
   }
-  
+
   .day-report .row {
     align-items: flex-start;
     flex-wrap: wrap;
   }
-  
+
   .day-report h3,.day-report .report {
     font-size: 15px;
   }
-  
+
   .export-panel,.copy-panel {
     padding: 24px 20px;
   }
-  
+
   .export-dates {
     grid-template-columns: 1fr;
   }
-  
+
 }
 @media (max-width: 370px) {
   .date-navigation {
     grid-template-columns: 34px 34px minmax(100px,1fr) 34px 34px;
   }
-  
+
   .date-navigation button {
     min-width: 34px;
     font-size: 12px;
   }
-  
+
   .heading,.compose-pane,.preview-pane {
     padding: 16px;
   }
-  
+
   .ai-orb {
     display: none;
   }
-  
+
 }
 @media (prefers-reduced-motion: reduce) {
   *,*::before,*::after {
@@ -964,7 +964,7 @@ button, .nav-link {
     transition: none !important;
     scroll-behavior: auto !important;
   }
-  
+
 }
 /* A heading receives focus only during keyboard navigation. */
 #page-title:focus-visible {
